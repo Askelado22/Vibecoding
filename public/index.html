@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Steam Game Finder</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1 class="title">Steam Game Finder</h1>
+      <p class="subtitle">
+        Введите название игры, чтобы найти её баннер, описание и скриншоты из Steam.
+      </p>
+      <form id="search-form" class="search-form">
+        <label for="game-name" class="visually-hidden">Название игры</label>
+        <input
+          type="text"
+          id="game-name"
+          name="game-name"
+          placeholder="Например, Counter-Strike 2"
+          required
+        />
+        <button type="submit">Найти</button>
+      </form>
+
+      <section id="status" class="status" aria-live="polite"></section>
+
+      <section id="results" class="results" hidden>
+        <div class="banner">
+          <img id="game-banner" alt="Баннер игры" loading="lazy" />
+        </div>
+        <div class="info">
+          <h2 id="game-title"></h2>
+          <p id="game-description"></p>
+          <a id="game-link" href="#" target="_blank" rel="noopener" class="store-link">
+            Открыть страницу игры в Steam
+          </a>
+        </div>
+        <div class="screenshots">
+          <h3>Скриншоты</h3>
+          <div id="screenshots-grid" class="screenshots-grid"></div>
+        </div>
+      </section>
+    </main>
+
+    <template id="screenshot-template">
+      <figure class="screenshot-card">
+        <img src="" alt="Скриншот игры" loading="lazy" />
+        <figcaption>
+          <a href="" target="_blank" rel="noopener">Открыть в полном размере</a>
+        </figcaption>
+      </figure>
+    </template>
+
+    <script src="main.js"></script>
+  </body>
+</html>
