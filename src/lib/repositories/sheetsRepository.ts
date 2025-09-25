@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { Item, MoveStatus } from '@prisma/client';
+import { MOVE_STATUS_LABEL_TO_VALUE, MOVE_STATUS_VALUE_TO_LABEL } from '../constants';
 import { formatMoscow, parseDateOrNull } from '../../lib/time';
 
 export type SheetRow = {
@@ -40,15 +41,13 @@ const SHEET_RANGE = process.env.SHEET_RANGE || 'Лист1!A:M';
 
 function normalizeMoveStatus(value: string | null): MoveStatus | null {
   if (!value) return null;
-  const statuses: MoveStatus[] = [
-    'Да',
-    'Нет',
-    'Иероглифы',
-    'Нет в наличии',
-    'Уже перенесен',
-    'Перенос не нужен'
-  ];
-  return statuses.includes(value as MoveStatus) ? (value as MoveStatus) : null;
+  if (value in MOVE_STATUS_LABEL_TO_VALUE) {
+    return MOVE_STATUS_LABEL_TO_VALUE[value];
+  }
+  if (value in MOVE_STATUS_VALUE_TO_LABEL) {
+    return value as MoveStatus;
+  }
+  return null;
 }
 
 function ensureDate(date: string | null): Date | null {
@@ -96,7 +95,7 @@ export function itemToSheetRow(item: Item): string[] {
   return [
     item.productUrl,
     item.assigneeName ?? '',
-    item.moveStatus ?? '',
+    item.moveStatus ? MOVE_STATUS_VALUE_TO_LABEL[item.moveStatus] : '',
     item.moveStatusSetBy ?? '',
     item.moveStatusSetAt ? formatMoscow(item.moveStatusSetAt) : '',
     item.finalBreadcrumbs ?? '',

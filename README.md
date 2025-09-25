@@ -22,6 +22,7 @@ npm run dev
 Откройте [http://localhost:3000](http://localhost:3000). Для входа используйте данные из сидов:
 
 - Admin: `admin@example.com` / `password123`
+- Admin: `askelwhite22@gmail.com` / `white13`
 - Worker: `worker@example.com` / `worker123`
 
 ## Переменные окружения
@@ -42,10 +43,13 @@ npm run dev
 ## Настройка Google Apps Script
 
 1. Создайте Google Apps Script, подключенный к нужной таблице.
-2. Реализуйте обработку запросов `GET` и `POST`:
-   - `GET ?action=pull&range=Лист1!A:M` — должен возвращать `{ "rows": [[...A..M], ...] }`.
-   - `POST` с телом `{ action: 'push', range: 'Лист1!A:M', rows: [[...A..M], ...] }` — обновляет/вставляет строки.
+2. Скопируйте содержимое файла [`google-apps-script/Code.gs`](google-apps-script/Code.gs) в редактор Apps Script и пропишите значение `SPREADSHEET_ID`.
 3. Опубликуйте скрипт как веб-приложение с доступом «Anyone with the link». URL поместите в `GAS_BASE_URL`.
+
+Скрипт реализует:
+
+- `GET ?action=pull&range=Лист1!A:M` — возвращает `{ "rows": [[...A..M], ...] }` без строки заголовков.
+- `POST` с телом `{ action: 'push', range: 'Лист1!A:M', rows: [[...A..M], ...] }` — обновляет существующие строки по `product_url` или дописывает новые.
 
 ## Синхронизация
 

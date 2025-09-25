@@ -13,12 +13,12 @@ enum Role {
 }
 
 enum MoveStatus {
-  Да
-  Нет
-  Иероглифы
-  "Нет в наличии"
-  "Уже перенесен"
-  "Перенос не нужен"
+  YES          @map("Да")
+  NO           @map("Нет")
+  HIEROGLYPHS  @map("Иероглифы")
+  OUT_OF_STOCK @map("Нет в наличии")
+  ALREADY_MOVED @map("Уже перенесен")
+  NOT_NEEDED   @map("Перенос не нужен")
 }
 
 model User {

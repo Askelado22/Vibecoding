@@ -1,14 +1,13 @@
+import type { MoveStatus } from '@prisma/client';
 import { useEffect, useMemo, useState } from 'react';
-import { MOVE_STATUS_OPTIONS } from '../lib/constants';
+import { MOVE_STATUS_OPTIONS, getMoveStatusLabel } from '../lib/constants';
 import { useToast } from './ToastProvider';
-
-const statusOptions = MOVE_STATUS_OPTIONS as readonly string[];
 
 type Item = {
   id: number;
   productUrl: string;
   finalBreadcrumbs: string | null;
-  moveStatus: string | null;
+  moveStatus: MoveStatus | null;
   comment: string | null;
   updatedAt: string;
   assigneeName: string | null;
@@ -42,7 +41,7 @@ export function WorkTab({ user }: WorkTabProps) {
   const [queueIndex, setQueueIndex] = useState(0);
   const [queueTotal, setQueueTotal] = useState(0);
   const [breadcrumbs, setBreadcrumbs] = useState('');
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState<MoveStatus | ''>('');
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
   const [product, setProduct] = useState<ProductInfo>(null);
@@ -61,7 +60,7 @@ export function WorkTab({ user }: WorkTabProps) {
       setQueueTotal(data.total ?? 0);
       if (data.item) {
         setBreadcrumbs(data.item.finalBreadcrumbs ?? '');
-        setStatus(data.item.moveStatus ?? '');
+        setStatus((data.item.moveStatus ?? '') as MoveStatus | '');
         setComment(data.item.comment ?? '');
       } else {
         setBreadcrumbs('');
@@ -122,14 +121,14 @@ export function WorkTab({ user }: WorkTabProps) {
         if (res.status === 409 && data.item) {
           setItem(data.item);
           setBreadcrumbs(data.item.finalBreadcrumbs ?? '');
-          setStatus(data.item.moveStatus ?? '');
+          setStatus((data.item.moveStatus ?? '') as MoveStatus | '');
           setComment(data.item.comment ?? '');
         }
         return;
       }
       setItem(data.item);
       setBreadcrumbs(data.item.finalBreadcrumbs ?? '');
-      setStatus(data.item.moveStatus ?? '');
+      setStatus((data.item.moveStatus ?? '') as MoveStatus | '');
       setComment(data.item.comment ?? '');
       showToast('Сохранено');
     } finally {
@@ -267,13 +266,15 @@ export function WorkTab({ user }: WorkTabProps) {
             <label className="text-sm text-gray-300">Статус переноса</label>
             <select
               value={status}
-              onChange={(event) => setStatus(event.target.value)}
+              onChange={(event) =>
+                setStatus((event.target.value as MoveStatus | ''))
+              }
               className="mt-2 w-full rounded-md border border-surfaceAlt bg-surfaceAlt p-3 text-sm text-white focus:border-accentBlue focus:outline-none"
             >
               <option value="">Выберите статус</option>
-              {statusOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
+              {MOVE_STATUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
                 </option>
               ))}
             </select>
@@ -346,6 +347,7 @@ export function WorkTab({ user }: WorkTabProps) {
         </div>
 
         <div className="rounded-lg bg-surface p-4 text-sm text-gray-300 shadow">
+          <p>Текущий статус: {getMoveStatusLabel(item.moveStatus) ?? '—'}</p>
           <p>Последний статус установил: {item.moveStatusSetBy || '—'}</p>
           <p>Обновлено: {new Date(item.updatedAt).toLocaleString('ru-RU')}</p>
         </div>

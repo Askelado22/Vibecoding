@@ -1,12 +1,13 @@
+import type { MoveStatus } from '@prisma/client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { MOVE_STATUS_OPTIONS } from '../lib/constants';
+import { MOVE_STATUS_OPTIONS, getMoveStatusLabel } from '../lib/constants';
 import { useToast } from './ToastProvider';
 
 type Item = {
   id: number;
   productUrl: string;
   assigneeName: string | null;
-  moveStatus: string | null;
+  moveStatus: MoveStatus | null;
   moveStatusSetBy: string | null;
   moveStatusSetAt: string | null;
   finalBreadcrumbs: string | null;
@@ -30,7 +31,7 @@ export function ListTab({ user }: ListTabProps) {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
   const [total, setTotal] = useState(0);
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState<MoveStatus | ''>('');
   const [assignee, setAssignee] = useState('');
   const [query, setQuery] = useState('');
   const [hasBreadcrumbs, setHasBreadcrumbs] = useState('');
@@ -110,13 +111,13 @@ export function ListTab({ user }: ListTabProps) {
           />
           <select
             value={status}
-            onChange={(event) => setStatus(event.target.value)}
+            onChange={(event) => setStatus((event.target.value as MoveStatus | ''))}
             className="rounded-md border border-surfaceAlt bg-surfaceAlt p-2 text-sm text-white"
           >
             <option value="">Статус</option>
             {MOVE_STATUS_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
+              <option key={option.value} value={option.value}>
+                {option.label}
               </option>
             ))}
           </select>
@@ -203,7 +204,7 @@ export function ListTab({ user }: ListTabProps) {
                     </a>
                   </td>
                   <td className="px-3 py-2">{item.assigneeName || '—'}</td>
-                  <td className="px-3 py-2">{item.moveStatus || '—'}</td>
+                  <td className="px-3 py-2">{getMoveStatusLabel(item.moveStatus) ?? '—'}</td>
                   <td className="px-3 py-2">{item.moveStatusSetBy || '—'}</td>
                   <td className="px-3 py-2">{formatDate(item.moveStatusSetAt)}</td>
                   <td className="px-3 py-2">{item.finalBreadcrumbs || '—'}</td>

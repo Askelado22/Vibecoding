@@ -3,11 +3,19 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
-const statuses: MoveStatus[] = ['Да', 'Нет', 'Иероглифы', 'Нет в наличии', 'Уже перенесен', 'Перенос не нужен'];
+const statuses: MoveStatus[] = [
+  MoveStatus.YES,
+  MoveStatus.NO,
+  MoveStatus.HIEROGLYPHS,
+  MoveStatus.OUT_OF_STOCK,
+  MoveStatus.ALREADY_MOVED,
+  MoveStatus.NOT_NEEDED
+];
 
 async function main() {
   const password = await bcrypt.hash('password123', 10);
   const workerPassword = await bcrypt.hash('worker123', 10);
+  const askelPassword = await bcrypt.hash('white13', 10);
 
   await prisma.user.upsert({
     where: { email: 'admin@example.com' },
@@ -28,6 +36,19 @@ async function main() {
       passwordHash: workerPassword,
       role: 'worker',
       displayName: 'Исполнитель'
+    }
+  });
+
+  await prisma.user.upsert({
+    where: { email: 'askelwhite22@gmail.com' },
+    update: {
+      displayName: 'askelwhite22'
+    },
+    create: {
+      email: 'askelwhite22@gmail.com',
+      passwordHash: askelPassword,
+      role: 'admin',
+      displayName: 'askelwhite22'
     }
   });
 

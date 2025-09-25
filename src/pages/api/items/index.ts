@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { requireAuth } from '../../../lib/auth';
 import { listItems } from '../../../lib/repositories/itemRepository';
 import { paginationSchema } from '../../../lib/validation';
-import { MOVE_STATUS_OPTIONS } from '../../../lib/constants';
+import { MOVE_STATUS_VALUES } from '../../../lib/constants';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const user = await requireAuth(req, res);
@@ -21,9 +21,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const status = req.query.status;
   const filters = {
     assignee: (req.query.assignee as string) || undefined,
-    status: status && MOVE_STATUS_OPTIONS.includes(status as any)
-      ? (status as any)
-      : undefined,
+    status:
+      status && MOVE_STATUS_VALUES.includes(status as any)
+        ? (status as any)
+        : undefined,
     hasBreadcrumbs: (req.query.hasBreadcrumbs as 'yes' | 'no' | undefined) || undefined,
     isCompleted: (req.query.isCompleted as 'yes' | 'no' | undefined) || undefined,
     query: (req.query.query as string) || undefined,

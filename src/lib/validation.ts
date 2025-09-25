@@ -1,5 +1,5 @@
+import { MoveStatus } from '@prisma/client';
 import { z } from 'zod';
-import { MOVE_STATUS_OPTIONS } from './constants';
 
 export const loginSchema = z.object({
   email: z.string().email(),
@@ -13,7 +13,7 @@ export const updateItemSchema = z.object({
     .regex(/.+>.+/, 'Путь должен содержать минимум два уровня через >')
     .optional()
     .nullable(),
-  moveStatus: z.enum(MOVE_STATUS_OPTIONS).optional().nullable(),
+  moveStatus: z.nativeEnum(MoveStatus).optional().nullable(),
   comment: z.string().max(2000).optional().nullable(),
   updatedAt: z.string().optional()
 });
