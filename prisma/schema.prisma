@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         String   @default("worker")
+  displayName  String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Item {
+  id                   Int        @id @default(autoincrement())
+  productUrl           String     @unique
+  assigneeName         String?
+  moveStatus           String?
+  moveStatusSetBy      String?
+  moveStatusSetAt      DateTime?
+  finalBreadcrumbs     String?
+  breadcrumbsSetBy     String?
+  breadcrumbsSetAt     DateTime?
+  priorityRaw          String     @default("")
+  completedBy          String?
+  completedAt          DateTime?
+  movedFlagRaw         String?
+  comment              String?
+  isCompleted          Boolean    @default(false)
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+}
+
+model Suggestion {
+  id          Int      @id @default(autoincrement())
+  titleMatch  String
+  description String?
+  path        String
+  score       Float    @default(0)
+  source      String   @default("upload")
+  createdAt   DateTime @default(now())
+}
+
+model SyncSettings {
+  id              Int       @id @default(1)
+  autoSyncEnabled Boolean   @default(false)
+  lastSyncAt      DateTime?
+  lastPushCursor  DateTime?
+  lastPullCursor  DateTime?
+  @@map("sync_settings")
+}
