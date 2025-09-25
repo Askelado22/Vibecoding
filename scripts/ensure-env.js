@@ -20,6 +20,7 @@ try {
     'DATA_SOURCE',
     'DATABASE_URL',
     'GAS_BASE_URL',
+    'SHEET_SPREADSHEET_ID',
     'SHEET_RANGE',
     'JWT_SECRET',
     'TZ',

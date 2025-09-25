@@ -6,7 +6,7 @@ import {
   MOVE_STATUS_VALUE_TO_LABEL,
   type MoveStatusValue
 } from '../constants';
-import { formatMoscow, parseDateOrNull } from '../../lib/time';
+import { ensureDate, formatMoscow, nowInMoscow } from '../../lib/time';
 
 export type SheetRow = {
   product_url: string;
@@ -43,6 +43,7 @@ const HEADERS = [
 
 const GAS_BASE_URL = process.env.GAS_BASE_URL || '';
 const SHEET_RANGE = process.env.SHEET_RANGE || 'Лист1!A:M';
+const SHEET_SPREADSHEET_ID = process.env.SHEET_SPREADSHEET_ID || '';
 
 function formatAxiosError(action: 'pull' | 'push', error: unknown): string {
   if (axios.isAxiosError(error)) {
@@ -99,15 +100,15 @@ function normalizeMoveStatus(value: string | null): MoveStatusValue | null {
   return null;
 }
 
-function ensureDate(date: string | null): Date | null {
-  return parseDateOrNull(date ?? undefined);
-}
-
 export async function pullSheetRows(): Promise<SheetRow[]> {
   if (!GAS_BASE_URL) return [];
+  const params: Record<string, string> = { action: 'pull', range: SHEET_RANGE };
+  if (SHEET_SPREADSHEET_ID) {
+    params.spreadsheetId = SHEET_SPREADSHEET_ID;
+  }
   const response = await axios
     .get(`${GAS_BASE_URL}`, {
-      params: { action: 'pull', range: SHEET_RANGE }
+      params
     })
     .catch((error) => {
       throw new Error(formatAxiosError('pull', error));
@@ -127,7 +128,7 @@ export async function pullSheetRows(): Promise<SheetRow[]> {
     const completedDate = ensureDate(map.completed_at);
     const updated_at = [moveStatusDate, breadcrumbsDate, completedDate]
       .filter((d): d is Date => !!d)
-      .sort((a, b) => b.getTime() - a.getTime())[0] ?? new Date();
+      .sort((a, b) => b.getTime() - a.getTime())[0] ?? nowInMoscow();
     return {
       product_url: map.product_url || '',
       assignee_name: map.assignee_name,
@@ -168,12 +169,16 @@ export function itemToSheetRow(item: Item): string[] {
 
 export async function pushSheetRows(rows: string[][]) {
   if (!GAS_BASE_URL) return;
+  const payload: Record<string, unknown> = {
+    action: 'push',
+    range: SHEET_RANGE,
+    rows
+  };
+  if (SHEET_SPREADSHEET_ID) {
+    payload.spreadsheetId = SHEET_SPREADSHEET_ID;
+  }
   const response = await axios
-    .post(`${GAS_BASE_URL}`, {
-      action: 'push',
-      range: SHEET_RANGE,
-      rows
-    })
+    .post(`${GAS_BASE_URL}`, payload)
     .catch((error) => {
       throw new Error(formatAxiosError('push', error));
     });

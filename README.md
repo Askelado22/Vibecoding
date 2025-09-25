@@ -36,6 +36,7 @@ npm run dev
 | `DATA_SOURCE`     | Всегда `db` — UI работает с локальной БД.                                  |
 | `DATABASE_URL`    | Путь к SQLite файлу (`file:./dev.db`).                                     |
 | `GAS_BASE_URL`    | URL опубликованного GAS-скрипта (веб-приложение).                          |
+| `SHEET_SPREADSHEET_ID` | (опционально) ID таблицы Google Sheets. Если скрипт привязан к таблице, можно оставить пустым. |
 | `SHEET_RANGE`     | Диапазон вида `Лист1!A:M`.                                                 |
 | `JWT_SECRET`      | Секрет для подписи JWT.                                                    |
 | `TZ`              | Часовой пояс. Используйте `Europe/Moscow`.                                |
@@ -44,9 +45,10 @@ npm run dev
 
 ## Настройка Google Apps Script
 
-1. Создайте Google Apps Script, подключенный к нужной таблице (или используйте «Extensions → Apps Script» внутри таблицы).
-2. Скопируйте содержимое файла [`google-apps-script/Code.gs`](google-apps-script/Code.gs) в редактор Apps Script. Если скрипт привязан к таблице, можно оставить `SPREADSHEET_ID` пустым; для standalone-скрипта пропишите ID таблицы.
+1. Создайте Google Apps Script, подключенный к нужной таблице (лучше через «Extensions → Apps Script» внутри самой таблицы). Для standalone-проекта укажите ID таблицы в константе `SPREADSHEET_ID` или передавайте его через параметр `spreadsheetId`/переменную окружения `SHEET_SPREADSHEET_ID`.
+2. Скопируйте содержимое файла [`google-apps-script/Code.gs`](google-apps-script/Code.gs) в редактор Apps Script.
 3. Опубликуйте скрипт как веб-приложение с доступом «Anyone with the link». URL поместите в `GAS_BASE_URL`.
+4. Убедитесь, что `SHEET_RANGE` в `.env` совпадает с названием вкладки (например, `feedback!A:M`). При необходимости добавьте `SHEET_SPREADSHEET_ID`, чтобы жёстко указать таблицу.
 
 Скрипт реализует:
 
