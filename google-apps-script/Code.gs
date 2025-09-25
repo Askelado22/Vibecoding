@@ -131,10 +131,15 @@ function normalizeRow(row) {
 }
 
 function jsonResponse(payload, statusCode) {
-  const output = ContentService.createTextOutput(JSON.stringify(payload));
+  const isError = Boolean(statusCode && statusCode >= 400);
+  const body = Object.assign(
+    {
+      ok: !isError,
+      statusCode: statusCode || 200
+    },
+    payload || {}
+  );
+  const output = ContentService.createTextOutput(JSON.stringify(body));
   output.setMimeType(ContentService.MimeType.JSON);
-  if (statusCode) {
-    output.setStatusCode(statusCode);
-  }
   return output;
 }

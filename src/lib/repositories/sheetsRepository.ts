@@ -63,6 +63,9 @@ export async function pullSheetRows(): Promise<SheetRow[]> {
   const response = await axios.get(`${GAS_BASE_URL}`, {
     params: { action: 'pull', range: SHEET_RANGE }
   });
+  if (response.data && response.data.ok === false) {
+    throw new Error(response.data.error || 'Google Apps Script pull error');
+  }
   const rows: string[][] = response.data.rows ?? [];
   return rows.map((row) => {
     const map = HEADERS.reduce<Record<string, string | null>>((acc, key, idx) => {
@@ -116,9 +119,12 @@ export function itemToSheetRow(item: Item): string[] {
 
 export async function pushSheetRows(rows: string[][]) {
   if (!GAS_BASE_URL) return;
-  await axios.post(`${GAS_BASE_URL}`, {
+  const response = await axios.post(`${GAS_BASE_URL}`, {
     action: 'push',
     range: SHEET_RANGE,
     rows
   });
+  if (response.data && response.data.ok === false) {
+    throw new Error(response.data.error || 'Google Apps Script push error');
+  }
 }
