@@ -1,6 +1,12 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const dns = require('dns');
+
+// Steam endpoints иногда отдают IPv6-адреса, которые недоступны в части окружений
+// (в таком случае Node.js генерирует ошибку ENETUNREACH). Принудительно просим
+// резолвить IPv4-адреса в первую очередь, чтобы сделать проксирование устойчивым.
+dns.setDefaultResultOrder('ipv4first');
 
 const PORT = process.env.PORT || 3000;
 const HOST = '0.0.0.0';
@@ -17,6 +23,9 @@ const MIME_TYPES = {
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
 };
+
+const FALLBACK_DATA_PATH = path.join(__dirname, 'data', 'fallback-games.json');
+const fallbackGames = loadFallbackGames(FALLBACK_DATA_PATH);
 
 const server = http.createServer(async (req, res) => {
   try {
@@ -120,6 +129,27 @@ async function handleGameLookup(url, res) {
     res.end(JSON.stringify(responsePayload));
   } catch (error) {
     console.error('Steam API error:', error);
+    const fallback = findFallbackGame(name);
+
+    if (fallback) {
+      console.warn('Используем офлайн-данные для игры:', fallback.name);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(
+        JSON.stringify({
+          name: fallback.name,
+          description: fallback.description,
+          headerImage: fallback.headerImage,
+          screenshots: Array.isArray(fallback.screenshots)
+            ? fallback.screenshots
+            : [],
+          steamAppId: fallback.steamAppId,
+          storePage: fallback.storePage,
+          offline: true,
+        })
+      );
+      return;
+    }
+
     res.writeHead(502, { 'Content-Type': 'application/json' });
     res.end(
       JSON.stringify({
@@ -166,4 +196,52 @@ async function streamFile(filePath, res) {
     stream.on('end', resolve);
     stream.pipe(res);
   });
+}
+
+function loadFallbackGames(filePath) {
+  try {
+    const file = fs.readFileSync(filePath, 'utf-8');
+    const parsed = JSON.parse(file);
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+  } catch (error) {
+    console.warn('Не удалось загрузить офлайн-данные игр:', error.message);
+  }
+
+  return [];
+}
+
+function findFallbackGame(query) {
+  if (!query) {
+    return null;
+  }
+
+  const normalized = query.trim().toLowerCase();
+
+  return (
+    fallbackGames.find((game) => {
+      if (!game || typeof game !== 'object') {
+        return false;
+      }
+
+      const aliases = Array.isArray(game.aliases) ? game.aliases : [];
+      const aliasMatch = aliases.some((alias) => {
+        const aliasNormalized = typeof alias === 'string' ? alias.trim().toLowerCase() : '';
+
+        if (!aliasNormalized) {
+          return false;
+        }
+
+        return (
+          normalized.includes(aliasNormalized) ||
+          aliasNormalized.includes(normalized)
+        );
+      });
+      const nameMatch = typeof game.name === 'string' &&
+        game.name.trim().toLowerCase() === normalized;
+
+      return aliasMatch || nameMatch;
+    }) || null
+  );
 }

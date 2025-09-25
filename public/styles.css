@@ -108,6 +108,10 @@ body {
   color: rgba(148, 163, 184, 0.9);
 }
 
+.status[data-status-type='warning'] {
+  color: #f5c451;
+}
+
 .results[hidden] {
   display: none;
 }

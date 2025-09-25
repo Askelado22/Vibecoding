@@ -29,7 +29,15 @@ form.addEventListener('submit', async (event) => {
 
     const game = await response.json();
     renderGame(game);
-    showStatus('Готово! Вот что удалось найти.', 'success');
+
+    if (game.offline) {
+      showStatus(
+        'Steam сейчас недоступен. Показаны заранее подготовленные данные.',
+        'warning'
+      );
+    } else {
+      showStatus('Готово! Вот что удалось найти.', 'success');
+    }
   } catch (error) {
     console.error(error);
     resultsSection.hidden = true;
@@ -81,9 +89,13 @@ function showStatus(message, type) {
 }
 
 function toggleLoading(isLoading) {
-  form.querySelector('button').disabled = isLoading;
-  form.querySelector('button').textContent = isLoading ? 'Ищем…' : 'Найти';
-  showStatus(isLoading ? 'Запрашиваем данные в Steam…' : '', 'info');
+  const button = form.querySelector('button');
+  button.disabled = isLoading;
+  button.textContent = isLoading ? 'Ищем…' : 'Найти';
+
+  if (isLoading) {
+    showStatus('Запрашиваем данные в Steam…', 'info');
+  }
 }
 
 async function safeJson(response) {

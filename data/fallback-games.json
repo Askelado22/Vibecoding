@@ -1,0 +1,44 @@
+[
+  {
+    "aliases": ["portal 2", "portal2", "portal", "портал", "портал 2"],
+    "name": "Portal 2",
+    "description": "Кооперативная и одиночная головоломка от Valve, продолжающая историю лаборатории Aperture Science и приключений Челл и Уитли.",
+    "headerImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzFiMjgzOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjQiIGZpbGw9IiNjN2Q1ZTAiPlBvcnRhbCAyPC90ZXh0Pjwvc3ZnPg==",
+    "screenshots": [
+      {
+        "thumbnail": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMTcwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjE3MCIgZmlsbD0iIzFiMjgzOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzIiIGZpbGw9IiNjN2Q1ZTAiPlBvcnRhbCAyPC90ZXh0Pjwvc3ZnPg==",
+        "full": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzFiMjgzOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjQiIGZpbGw9IiNjN2Q1ZTAiPlBvcnRhbCAyPC90ZXh0Pjwvc3ZnPg=="
+      }
+    ],
+    "steamAppId": 620,
+    "storePage": "https://store.steampowered.com/app/620"
+  },
+  {
+    "aliases": ["half-life 2", "half life 2", "half life", "half-life"],
+    "name": "Half-Life 2",
+    "description": "Продолжение культового шутера от Valve про возвращение Гордона Фримена и сопротивление Альянсу.",
+    "headerImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzFiMjgzOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjQiIGZpbGw9IiNjN2Q1ZTAiPkhhbGYtTGlmZSAyPC90ZXh0Pjwvc3ZnPg==",
+    "screenshots": [
+      {
+        "thumbnail": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMTcwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjE3MCIgZmlsbD0iIzFiMjgzOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzIiIGZpbGw9IiNjN2Q1ZTAiPkhhbGYtTGlmZSAyPC90ZXh0Pjwvc3ZnPg==",
+        "full": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzFiMjgzOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjQiIGZpbGw9IiNjN2Q1ZTAiPkhhbGYtTGlmZSAyPC90ZXh0Pjwvc3ZnPg=="
+      }
+    ],
+    "steamAppId": 220,
+    "storePage": "https://store.steampowered.com/app/220"
+  },
+  {
+    "aliases": ["dota 2", "dota", "дота", "дота 2"],
+    "name": "Dota 2",
+    "description": "Командная MOBA, в которой две команды по пять игроков сражаются за контроль над картой и Трон противника.",
+    "headerImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzFiMjgzOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjQiIGZpbGw9IiNjN2Q1ZTAiPkRvdGEgMjwvdGV4dD48L3N2Zz4=",
+    "screenshots": [
+      {
+        "thumbnail": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMTcwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjE3MCIgZmlsbD0iIzFiMjgzOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzIiIGZpbGw9IiNjN2Q1ZTAiPkRvdGEgMjwvdGV4dD48L3N2Zz4=",
+        "full": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iMzAwIj48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzFiMjgzOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjQiIGZpbGw9IiNjN2Q1ZTAiPkRvdGEgMjwvdGV4dD48L3N2Zz4="
+      }
+    ],
+    "steamAppId": 570,
+    "storePage": "https://store.steampowered.com/app/570"
+  }
+]
