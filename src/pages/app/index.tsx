@@ -7,6 +7,7 @@ import { ListTab } from '../../components/ListTab';
 import { AdminTab } from '../../components/AdminTab';
 import { prisma } from '../../lib/repositories/prisma';
 import { getTokenName, verifyToken } from '../../lib/auth';
+import { isUserRole } from '../../lib/constants';
 
 interface AppPageProps {
   user: {
@@ -61,12 +62,14 @@ export const getServerSideProps: GetServerSideProps<AppPageProps> = async (conte
     };
   }
 
+  const role = isUserRole(user.role) ? user.role : 'worker';
+
   return {
     props: {
       user: {
         id: user.id,
         email: user.email,
-        role: user.role,
+        role,
         displayName: user.displayName
       }
     }

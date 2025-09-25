@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/repositories/prisma';
 import { loginSchema } from '../../../lib/validation';
 import { setAuthCookie, signToken, verifyPassword } from '../../../lib/auth';
+import { isUserRole } from '../../../lib/constants';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -28,13 +29,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const token = signToken({ userId: user.id, email: user.email, role: user.role });
+  const role = isUserRole(user.role) ? user.role : 'worker';
+  const token = signToken({ userId: user.id, email: user.email, role });
   setAuthCookie(res, token);
   res.status(200).json({
     user: {
       id: user.id,
       email: user.email,
-      role: user.role,
+      role,
       displayName: user.displayName
     }
   });

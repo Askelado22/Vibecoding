@@ -1,13 +1,16 @@
-import type { MoveStatus } from '@prisma/client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { MOVE_STATUS_OPTIONS, getMoveStatusLabel } from '../lib/constants';
+import {
+  MOVE_STATUS_OPTIONS,
+  getMoveStatusLabel,
+  type MoveStatusValue
+} from '../lib/constants';
 import { useToast } from './ToastProvider';
 
 type Item = {
   id: number;
   productUrl: string;
   assigneeName: string | null;
-  moveStatus: MoveStatus | null;
+  moveStatus: MoveStatusValue | null;
   moveStatusSetBy: string | null;
   moveStatusSetAt: string | null;
   finalBreadcrumbs: string | null;
@@ -31,7 +34,7 @@ export function ListTab({ user }: ListTabProps) {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
   const [total, setTotal] = useState(0);
-  const [status, setStatus] = useState<MoveStatus | ''>('');
+  const [status, setStatus] = useState<MoveStatusValue | ''>('');
   const [assignee, setAssignee] = useState('');
   const [query, setQuery] = useState('');
   const [hasBreadcrumbs, setHasBreadcrumbs] = useState('');
@@ -111,7 +114,7 @@ export function ListTab({ user }: ListTabProps) {
           />
           <select
             value={status}
-            onChange={(event) => setStatus((event.target.value as MoveStatus | ''))}
+            onChange={(event) => setStatus((event.target.value as MoveStatusValue | ''))}
             className="rounded-md border border-surfaceAlt bg-surfaceAlt p-2 text-sm text-white"
           >
             <option value="">Статус</option>

@@ -1,16 +1,10 @@
-import { PrismaClient, MoveStatus } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { MOVE_STATUS_VALUES, MoveStatusValue } from '../src/lib/constants';
 
 const prisma = new PrismaClient();
 
-const statuses: MoveStatus[] = [
-  MoveStatus.YES,
-  MoveStatus.NO,
-  MoveStatus.HIEROGLYPHS,
-  MoveStatus.OUT_OF_STOCK,
-  MoveStatus.ALREADY_MOVED,
-  MoveStatus.NOT_NEEDED
-];
+const statuses: MoveStatusValue[] = [...MOVE_STATUS_VALUES];
 
 async function main() {
   const password = await bcrypt.hash('password123', 10);

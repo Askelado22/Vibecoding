@@ -1,10 +1,11 @@
-import { Item, MoveStatus, Prisma } from '@prisma/client';
+import type { Item, Prisma } from '@prisma/client';
 import { prisma } from './prisma';
 import { nowInMoscow } from '../../lib/time';
+import type { MoveStatusValue } from '../constants';
 
 export type ItemFilters = {
   assignee?: string;
-  status?: MoveStatus | 'all';
+  status?: MoveStatusValue | 'all';
   hasBreadcrumbs?: 'yes' | 'no';
   isCompleted?: 'yes' | 'no';
   query?: string;
@@ -24,7 +25,7 @@ export async function listItems(
   }
 
   if (filters.status && filters.status !== 'all') {
-    where.moveStatus = filters.status as MoveStatus;
+    where.moveStatus = filters.status as MoveStatusValue;
   }
 
   if (filters.hasBreadcrumbs) {

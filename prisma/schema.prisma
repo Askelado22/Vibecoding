@@ -7,25 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  admin
-  worker
-}
-
-enum MoveStatus {
-  YES          @map("Да")
-  NO           @map("Нет")
-  HIEROGLYPHS  @map("Иероглифы")
-  OUT_OF_STOCK @map("Нет в наличии")
-  ALREADY_MOVED @map("Уже перенесен")
-  NOT_NEEDED   @map("Перенос не нужен")
-}
-
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
   passwordHash String
-  role         Role
+  role         String   @default("worker")
   displayName  String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -35,7 +21,7 @@ model Item {
   id                   Int        @id @default(autoincrement())
   productUrl           String     @unique
   assigneeName         String?
-  moveStatus           MoveStatus?
+  moveStatus           String?
   moveStatusSetBy      String?
   moveStatusSetAt      DateTime?
   finalBreadcrumbs     String?

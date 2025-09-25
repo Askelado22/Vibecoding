@@ -1,12 +1,16 @@
 import axios from 'axios';
-import { Item, MoveStatus } from '@prisma/client';
-import { MOVE_STATUS_LABEL_TO_VALUE, MOVE_STATUS_VALUE_TO_LABEL } from '../constants';
+import type { Item } from '@prisma/client';
+import {
+  MOVE_STATUS_LABEL_TO_VALUE,
+  MOVE_STATUS_VALUE_TO_LABEL,
+  type MoveStatusValue
+} from '../constants';
 import { formatMoscow, parseDateOrNull } from '../../lib/time';
 
 export type SheetRow = {
   product_url: string;
   assignee_name: string | null;
-  move_status: MoveStatus | null;
+  move_status: MoveStatusValue | null;
   move_status_set_by: string | null;
   move_status_set_at: Date | null;
   final_breadcrumbs: string | null;
@@ -39,13 +43,13 @@ const HEADERS = [
 const GAS_BASE_URL = process.env.GAS_BASE_URL || '';
 const SHEET_RANGE = process.env.SHEET_RANGE || 'Лист1!A:M';
 
-function normalizeMoveStatus(value: string | null): MoveStatus | null {
+function normalizeMoveStatus(value: string | null): MoveStatusValue | null {
   if (!value) return null;
   if (value in MOVE_STATUS_LABEL_TO_VALUE) {
     return MOVE_STATUS_LABEL_TO_VALUE[value];
   }
   if (value in MOVE_STATUS_VALUE_TO_LABEL) {
-    return value as MoveStatus;
+    return value as MoveStatusValue;
   }
   return null;
 }
@@ -92,10 +96,11 @@ export async function pullSheetRows(): Promise<SheetRow[]> {
 }
 
 export function itemToSheetRow(item: Item): string[] {
+  const moveStatus = (item.moveStatus ?? null) as MoveStatusValue | null;
   return [
     item.productUrl,
     item.assigneeName ?? '',
-    item.moveStatus ? MOVE_STATUS_VALUE_TO_LABEL[item.moveStatus] : '',
+    moveStatus ? MOVE_STATUS_VALUE_TO_LABEL[moveStatus] : '',
     item.moveStatusSetBy ?? '',
     item.moveStatusSetAt ? formatMoscow(item.moveStatusSetAt) : '',
     item.finalBreadcrumbs ?? '',
