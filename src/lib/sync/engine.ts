@@ -91,7 +91,7 @@ export async function runSync() {
     }
 
     if (creates.length > 0) {
-      await prisma.item.createMany({ data: creates, skipDuplicates: true });
+      await prisma.item.createMany({ data: creates });
     }
 
     const batchedOperations = [

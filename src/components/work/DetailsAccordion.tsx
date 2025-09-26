@@ -36,7 +36,7 @@ type DetailsAccordionProps = {
 export function DetailsAccordion({ descriptionHtml, extraHtml }: DetailsAccordionProps) {
   const [search, setSearch] = useState('');
   const [openDescription, setOpenDescription] = useState(true);
-  const [openExtra, setOpenExtra] = useState(false);
+  const [openExtra, setOpenExtra] = useState(true);
 
   const highlightedDescription = useMemo(
     () => highlightHtml(descriptionHtml, search.trim()),
