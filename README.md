@@ -24,6 +24,54 @@ npm run dev
 - Admin: `admin@example.com` / `password123`
 - Worker: `worker@example.com` / `worker123`
 
+## Backend (Django + DRF)
+
+Серверная часть расположена в каталоге `backend/` и предоставляет REST API для фронтенда.
+
+### Установка
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .
+python manage.py ensure_env
+python manage.py migrate
+python manage.py seed
+python manage.py runserver
+```
+
+Доступные учетные записи после `seed` совпадают с фронтендом. Swagger-документация доступна на `http://localhost:8000/api/docs/`.
+
+### Основные команды
+
+- `python manage.py ensure_env` — создаёт `.env` и заполняет обязательные переменные окружения.
+- `python manage.py seed` — сидит базу пользователей, товаров и подсказок.
+- `python manage.py run_sync` — выполняет цикл синхронизации с Google Sheets.
+
+### Переменные окружения
+
+Минимальный набор переменных хранится в `.env.example`:
+
+```
+DATA_SOURCE=db
+DATABASE_URL=sqlite:///dev.db
+GAS_BASE_URL=
+SHEET_SPREADSHEET_ID=
+SHEET_RANGE=Лист1!A:M
+JWT_SECRET=change-me
+TZ=Europe/Moscow
+AUTO_SYNC_ENABLED=false
+SUGGESTIONS_HTTP_ENDPOINT=
+```
+
+### Синхронизация с Google Sheets
+
+- Pull: `GET GAS_BASE_URL?action=pull&range=...` → `{ rows: [[...A..M], ...] }`
+- Push: `POST GAS_BASE_URL` c телом `{ action: 'push', range: 'Лист1!A:M', rows: [[...A..M], ...] }`
+
+Алгоритм «последняя запись побеждает» сравнивает `updated_at` (максимум из E/H/K). Фоновая автосинхронизация включается через `POST /api/admin/sync/auto`.
+
 ## Переменные окружения
 
 Скопируйте файл `.env.example` в `.env` и укажите значения:
