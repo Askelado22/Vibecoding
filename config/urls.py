@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.urls import include, path
-from django.views.generic import RedirectView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
@@ -11,5 +10,5 @@ urlpatterns = [
     path('api/items/', include('items.urls')),
     path('api/', include('suggestions.urls')),
     path('api/', include('syncapp.urls')),
-    path('', RedirectView.as_view(pattern_name='docs', permanent=False)),
+    path('', include('frontend.urls')),
 ]

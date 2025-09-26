@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'items',
     'suggestions',
     'syncapp',
+    'frontend',
 ]
 
 MIDDLEWARE = [

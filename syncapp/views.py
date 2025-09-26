@@ -35,13 +35,23 @@ class SyncRunView(APIView):
 class SyncAutoToggleView(APIView):
     permission_classes = [IsAdmin]
 
-    def post(self, request):
-        enabled = bool(request.data.get('enabled'))
+    def get(self, request):
         settings_obj = SyncSettings.get_solo()
+        serializer = SyncSettingsSerializer(settings_obj)
+        return Response({'settings': serializer.data})
+
+    def post(self, request):
+        settings_obj = SyncSettings.get_solo()
+        if 'enabled' in request.data:
+            enabled = bool(request.data.get('enabled'))
+        else:
+            enabled = not settings_obj.auto_sync_enabled
         settings_obj.auto_sync_enabled = enabled
         settings_obj.save(update_fields=['auto_sync_enabled'])
-        auto_sync_scheduler.start()
-        return Response(SyncSettingsSerializer(settings_obj).data)
+        if enabled:
+            auto_sync_scheduler.start()
+        serializer = SyncSettingsSerializer(settings_obj)
+        return Response({'settings': serializer.data})
 
 
 class MetricsView(APIView):

@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GGSEL Разбор товаров</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050914;
+      --panel: #101728;
+      --panel-alt: #0c1322;
+      --border: #1f2a45;
+      --primary: #4c7dff;
+      --primary-hover: #6d94ff;
+      --accent: #ec5f9b;
+      --accent-hover: #f07aad;
+      --text: #f3f5ff;
+      --muted: #9aa5d3;
+      --success: #48c78e;
+      --danger: #ff5f6d;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      background: radial-gradient(circle at top, #101a35, var(--bg));
+      color: var(--text);
+      font-family: "Inter", "Segoe UI", sans-serif;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 32px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8, 12, 26, 0.85);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .tagline {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .tab-button {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--muted);
+      padding: 8px 16px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.18s ease;
+    }
+
+    .tab-button:hover {
+      border-color: rgba(76, 125, 255, 0.4);
+      color: var(--text);
+    }
+
+    .tab-button.active {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-color: transparent;
+      color: #0d1120;
+      box-shadow: 0 10px 25px rgba(76, 125, 255, 0.35);
+    }
+
+    .user-panel {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .user-panel button {
+      padding: 8px 14px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      transition: background 0.18s ease;
+    }
+
+    .user-panel button:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    main {
+      flex: 1;
+      width: 100%;
+    }
+
+    .content {
+      display: none;
+      padding: 32px;
+      max-width: 1440px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .content.active {
+      display: block;
+    }
+
+    .grid-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+      gap: 28px;
+      padding-bottom: 140px;
+    }
+
+    .panel {
+      background: rgba(15, 20, 35, 0.92);
+      border: 1px solid rgba(87, 120, 188, 0.25);
+      border-radius: 18px;
+      padding: 20px 24px;
+      box-shadow: 0 18px 40px rgba(5, 12, 33, 0.45);
+    }
+
+    .panel h2 {
+      margin: 0 0 16px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .product-card {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
+    }
+
+    .product-media {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(76, 125, 255, 0.2), rgba(236, 95, 155, 0.2));
+      min-height: 180px;
+    }
+
+    .product-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .product-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      font-size: 14px;
+    }
+
+    .product-meta a {
+      color: var(--primary);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    .accordion {
+      margin-top: 24px;
+      border-radius: 14px;
+      border: 1px solid rgba(87, 120, 188, 0.25);
+      overflow: hidden;
+      background: rgba(10, 16, 32, 0.6);
+    }
+
+    .accordion-section {
+      border-bottom: 1px solid rgba(87, 120, 188, 0.18);
+    }
+
+    .accordion-section:last-child {
+      border-bottom: none;
+    }
+
+    .accordion-toggle {
+      width: 100%;
+      background: none;
+      color: inherit;
+      border: none;
+      padding: 16px 20px;
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .accordion-content {
+      padding: 0 20px 20px;
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--muted);
+      display: none;
+    }
+
+    .accordion-content.active {
+      display: block;
+    }
+
+    .path-builder {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .path-builder .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 13px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    select,
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(81, 108, 178, 0.5);
+      background: rgba(9, 14, 30, 0.9);
+      color: var(--text);
+      font-size: 14px;
+      resize: vertical;
+      min-height: 42px;
+    }
+
+    textarea {
+      min-height: 120px;
+    }
+
+    select:focus,
+    input[type="text"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px rgba(76, 125, 255, 0.4);
+    }
+
+    .breadcrumb-preview {
+      background: rgba(10, 18, 40, 0.9);
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px dashed rgba(81, 108, 178, 0.5);
+      font-family: "JetBrains Mono", "Fira Mono", monospace;
+      font-size: 13px;
+      word-break: break-word;
+    }
+
+    .suggestions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .suggestion {
+      border-radius: 12px;
+      padding: 14px;
+      background: rgba(12, 20, 38, 0.9);
+      border: 1px solid rgba(76, 125, 255, 0.25);
+    }
+
+    .suggestion-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .suggestion button {
+      background: rgba(76, 125, 255, 0.18);
+      border: 1px solid rgba(76, 125, 255, 0.5);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.18s ease;
+    }
+
+    .suggestion button:hover {
+      background: rgba(76, 125, 255, 0.3);
+    }
+
+    .status-card {
+      display: grid;
+      gap: 16px;
+    }
+
+    .status-meta {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(8, 12, 26, 0.92);
+      border-top: 1px solid var(--border);
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      backdrop-filter: blur(18px);
+    }
+
+    .bottom-bar .info {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .bottom-bar .controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 12px;
+      padding: 10px 18px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #7ea1ff);
+      color: #050914;
+      box-shadow: 0 12px 28px rgba(76, 125, 255, 0.35);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 32px rgba(76, 125, 255, 0.45);
+    }
+
+    .btn-accent {
+      background: linear-gradient(135deg, var(--accent), #ff89be);
+      color: #050914;
+      box-shadow: 0 12px 28px rgba(236, 95, 155, 0.35);
+    }
+
+    .btn-accent:disabled,
+    .btn-primary:disabled {
+      opacity: 0.45;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    .btn-muted {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+    }
+
+    .btn-icon {
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .comment-sheet {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: -420px;
+      background: rgba(8, 12, 26, 0.95);
+      border-top: 1px solid var(--border);
+      padding: 24px 32px 32px;
+      transition: bottom 0.25s ease;
+      box-shadow: 0 -20px 40px rgba(3, 6, 16, 0.65);
+      z-index: 40;
+    }
+
+    .comment-sheet.open {
+      bottom: 0;
+    }
+
+    .comment-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .comment-header h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .sheet-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .toast {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      padding: 12px 18px;
+      border-radius: 12px;
+      background: rgba(12, 20, 38, 0.92);
+      border: 1px solid rgba(76, 125, 255, 0.35);
+      color: var(--text);
+      font-size: 14px;
+      box-shadow: 0 10px 30px rgba(5, 12, 30, 0.45);
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .toast.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .login-panel {
+      max-width: 420px;
+      margin: 80px auto;
+      text-align: center;
+      padding: 32px;
+      border-radius: 20px;
+      background: rgba(12, 20, 38, 0.85);
+      border: 1px solid rgba(76, 125, 255, 0.2);
+      box-shadow: 0 20px 40px rgba(4, 8, 20, 0.6);
+    }
+
+    .login-panel h2 {
+      margin-bottom: 12px;
+    }
+
+    .login-panel form {
+      display: grid;
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .section-grid {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    }
+
+    .metrics-grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .metric-card {
+      background: rgba(10, 16, 32, 0.75);
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid rgba(76, 125, 255, 0.2);
+    }
+
+    .item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 480px;
+      overflow: auto;
+      margin-top: 12px;
+    }
+
+    .item-card {
+      background: rgba(12, 18, 36, 0.85);
+      border: 1px solid rgba(76, 125, 255, 0.2);
+      border-radius: 12px;
+      padding: 12px;
+      cursor: pointer;
+      display: grid;
+      gap: 6px;
+      transition: border 0.18s ease, transform 0.18s ease;
+    }
+
+    .item-card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(76, 125, 255, 0.5);
+    }
+
+    .item-card.active {
+      border-color: var(--primary);
+      box-shadow: 0 12px 28px rgba(76, 125, 255, 0.3);
+    }
+
+    .item-card small {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .split-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 1200px) {
+      .grid-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .product-card {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+      }
+
+      .tabs {
+        flex-wrap: wrap;
+      }
+
+      .bottom-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+
+      .bottom-bar .controls {
+        flex-wrap: wrap;
+      }
+
+      .content {
+        padding: 24px 16px 160px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+  <header>
+    <div>
+      <h1>GGSEL Разбор товаров</h1>
+      <div class="tagline">Рабочий стол аналитика: очередь товаров, подсказки и статусы</div>
+    </div>
+    <nav class="tabs">
+      <button class="tab-button active" data-tab-target="workspace">Рабочий стол</button>
+      <button class="tab-button" data-tab-target="admin">Администрирование</button>
+      <button class="tab-button" data-tab-target="guide">Справка</button>
+    </nav>
+    <div class="user-panel" id="user-panel">
+      <span id="user-info"></span>
+      <button type="button" id="logout-btn" hidden>Выйти</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="content active" id="workspace">
+      <div id="login-view" class="login-panel" hidden>
+        <h2>Вход</h2>
+        <p>Используйте учётные данные из seed-данных или вашу рабочую запись.</p>
+        <form id="login-form">
+          <div>
+            <label for="login-email">Email</label>
+            <input type="text" id="login-email" autocomplete="username" required />
+          </div>
+          <div>
+            <label for="login-password">Пароль</label>
+            <input type="password" id="login-password" autocomplete="current-password" required />
+          </div>
+          <button type="submit" class="btn btn-primary">Войти</button>
+        </form>
+      </div>
+
+      <div id="workspace-view" hidden>
+        <div class="grid-layout">
+          <div class="panel">
+            <h2>Карточка товара</h2>
+            <div class="split-columns">
+              <div>
+                <h3 style="margin-top:0">Очередь</h3>
+                <div class="item-list" id="item-list"></div>
+              </div>
+              <div>
+                <div class="product-card">
+                  <div class="product-media" id="product-media">
+                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;" id="media-placeholder">Предпросмотр</div>
+                  </div>
+                  <div class="product-meta">
+                    <div>
+                      <small>Ссылка</small>
+                      <a href="#" target="_blank" id="product-link">—</a>
+                    </div>
+                    <div>
+                      <small>Цена</small>
+                      <div id="product-price">—</div>
+                    </div>
+                    <div>
+                      <small>Продавец</small>
+                      <div id="product-seller">—</div>
+                    </div>
+                    <div>
+                      <small>Назначено</small>
+                      <div id="product-assignee">—</div>
+                    </div>
+                    <div>
+                      <small>Статус</small>
+                      <div id="product-status">—</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="accordion" style="margin-top:24px;">
+                  <div class="accordion-section">
+                    <button class="accordion-toggle" data-accordion="description">Описание<span>▼</span></button>
+                    <div class="accordion-content active" id="description-content"></div>
+                  </div>
+                  <div class="accordion-section">
+                    <button class="accordion-toggle" data-accordion="details">Доп. информация<span>▼</span></button>
+                    <div class="accordion-content" id="details-content"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="panel" style="display:flex;flex-direction:column;gap:24px;">
+            <div>
+              <h2>PathBuilder</h2>
+              <div class="path-builder" id="path-builder">
+                <div>
+                  <label for="root-select">Корневой раздел</label>
+                  <select id="root-select"></select>
+                </div>
+                <div>
+                  <label for="product-input">Товар / игра</label>
+                  <input type="text" id="product-input" placeholder="Например, Hogwarts Legacy" />
+                </div>
+                <div>
+                  <label for="type-select">Тип товара</label>
+                  <select id="type-select"></select>
+                </div>
+                <div>
+                  <label for="platform-select">Платформа</label>
+                  <select id="platform-select"></select>
+                </div>
+                <div>
+                  <label for="edition-select">Издание (опционально)</label>
+                  <select id="edition-select"></select>
+                </div>
+                <div>
+                  <label for="custom-segment">Дополнительные сегменты</label>
+                  <input type="text" id="custom-segment" placeholder="Через ' > ' или двойной пробел" />
+                </div>
+                <div>
+                  <label>Собранный путь</label>
+                  <div class="breadcrumb-preview" id="breadcrumb-preview">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h2>Подсказки</h2>
+              <div class="suggestions-list" id="suggestions"></div>
+            </div>
+
+            <div>
+              <h2>Статус</h2>
+              <div class="status-card">
+                <div>
+                  <label for="status-select">Статус переноса</label>
+                  <select id="status-select"></select>
+                </div>
+                <div class="status-meta">
+                  <div>Последний апдейт статуса: <span id="status-meta">—</span></div>
+                  <div>Крошки обновлены: <span id="breadcrumbs-meta">—</span></div>
+                </div>
+                <label for="completion-toggle" style="display:flex;align-items:center;gap:12px;">
+                  <input type="checkbox" id="completion-toggle" disabled /> Завершить
+                </label>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="content" id="admin">
+      <div class="panel">
+        <h2>Управление синхронизацией</h2>
+        <div class="section-grid">
+          <div>
+            <p>Эти действия доступны только администраторам. Ручной запуск выполняет pull → merge → push.</p>
+            <button class="btn btn-primary" id="run-sync-btn">Запустить синхронизацию</button>
+          </div>
+          <div>
+            <p>Автосинк проверяет Google Sheets каждые 30 минут.</p>
+            <button class="btn btn-accent" id="toggle-auto-btn">—</button>
+          </div>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:24px;">
+        <h2>Последний статус</h2>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="tagline">Последний pull</div>
+            <div id="metric-pull">—</div>
+          </div>
+          <div class="metric-card">
+            <div class="tagline">Последний push</div>
+            <div id="metric-push">—</div>
+          </div>
+          <div class="metric-card">
+            <div class="tagline">Состояние</div>
+            <div id="metric-status">—</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content" id="guide">
+      <div class="panel">
+        <h2>Как работать с интерфейсом</h2>
+        <ol style="line-height:1.6;color:var(--muted);font-size:15px;">
+          <li>Залогиньтесь в разделе «Рабочий стол» с помощью email и пароля.</li>
+          <li>Выберите карточку в очереди слева — данные загрузятся автоматически.</li>
+          <li>Соберите крошки в PathBuilder: заполните поля, при необходимости допишите сегменты вручную.</li>
+          <li>Подсказки помогают быстро заполнить путь — нажмите «Вставить», чтобы перенести вариант в PathBuilder.</li>
+          <li>Укажите статус и при необходимости комментарий (кнопка в нижней панели).</li>
+          <li>Нажмите «Сохранить», чтобы отправить изменения. Кнопка «Завершил» станет активной, когда указаны и статус, и крошки.</li>
+          <li>Переключайтесь между карточками кнопками «Предыдущий» и «Следующий» либо выбирайте вручную.</li>
+          <li>Во вкладке «Администрирование» доступны ручной запуск синка и управление автосинком (для роли admin).</li>
+        </ol>
+        <p style="color:var(--muted);margin-top:16px;">Документация API по-прежнему доступна на <a href="/api/docs/" target="_blank" style="color:var(--primary);">/api/docs/</a>.</p>
+      </div>
+    </section>
+  </main>
+
+  <div class="bottom-bar" id="bottom-bar" hidden>
+    <div class="info">
+      <div id="bottom-title">—</div>
+      <div style="display:flex;gap:12px;align-items:center;font-size:12px;color:var(--muted);">
+        <span id="bottom-progress">0 из 0</span>
+        <span id="bottom-rating"></span>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="btn-icon" id="copy-link" title="Скопировать URL">⧉</button>
+      <button class="btn-icon" id="open-link" title="Открыть карточку">↗</button>
+      <button class="btn-icon" id="toggle-comment" title="Комментарий">💬</button>
+      <button class="btn btn-muted" id="prev-btn">Предыдущий</button>
+      <button class="btn btn-primary" id="save-btn">Сохранить</button>
+      <button class="btn btn-accent" id="complete-btn" disabled>Завершил</button>
+      <button class="btn btn-muted" id="next-btn">Следующий</button>
+    </div>
+  </div>
+
+  <div class="comment-sheet" id="comment-sheet">
+    <div class="comment-header">
+      <h3>Комментарий к карточке</h3>
+      <button class="sheet-close" id="close-comment">✕</button>
+    </div>
+    <textarea id="comment-input" placeholder="Добавьте заметку для коллег"></textarea>
+    <div style="text-align:right;margin-top:12px;">
+      <button class="btn btn-primary" id="save-comment">Сохранить комментарий</button>
+    </div>
+  </div>
+
+  <script>
+    const moveStatusOptions = [
+      "",
+      "Да",
+      "Нет",
+      "Иероглифы",
+      "Нет в наличии",
+      "Уже перенесен",
+      "Перенос не нужен",
+    ];
+
+    const rootOptions = ["", "Игры", "Сервисы и соцсети", "Программное обеспечение"];
+    const typeOptions = [
+      "",
+      "Аккаунты",
+      "Ключи",
+      "Покупка на ваш аккаунт",
+      "Аренда аккаунтов",
+      "Оффлайн аккаунты",
+      "Услуги активации",
+      "DLC",
+      "Скины",
+      "Предметы",
+      "Валюта",
+      "Боевой пропуск",
+      "Наборы",
+    ];
+    const platformOptions = [
+      "",
+      "Battle.net",
+      "EA app",
+      "Epic Games Store",
+      "GOG",
+      "Nintendo Switch",
+      "PlayStation",
+      "Steam",
+      "Ubisoft Connect",
+      "Xbox / Microsoft Store",
+    ];
+    const editionOptions = ["", "Standard Edition", "Deluxe Edition"];
+
+    const state = {
+      user: null,
+      items: [],
+      totalItems: 0,
+      currentPage: 1,
+      selected: null,
+      suggestions: [],
+      product: null,
+      syncSettings: null,
+      autoSync: null,
+      commentDraft: "",
+    };
+
+    const elements = {
+      loginView: document.getElementById("login-view"),
+      workspaceView: document.getElementById("workspace-view"),
+      bottomBar: document.getElementById("bottom-bar"),
+      commentSheet: document.getElementById("comment-sheet"),
+      toast: document.getElementById("toast"),
+      tabs: document.querySelectorAll(".tab-button"),
+      contents: document.querySelectorAll(".content"),
+      userInfo: document.getElementById("user-info"),
+      logoutBtn: document.getElementById("logout-btn"),
+      itemList: document.getElementById("item-list"),
+      productLink: document.getElementById("product-link"),
+      productPrice: document.getElementById("product-price"),
+      productSeller: document.getElementById("product-seller"),
+      productAssignee: document.getElementById("product-assignee"),
+      productStatus: document.getElementById("product-status"),
+      productMedia: document.getElementById("product-media"),
+      mediaPlaceholder: document.getElementById("media-placeholder"),
+      descriptionContent: document.getElementById("description-content"),
+      detailsContent: document.getElementById("details-content"),
+      breadcrumbPreview: document.getElementById("breadcrumb-preview"),
+      statusSelect: document.getElementById("status-select"),
+      statusMeta: document.getElementById("status-meta"),
+      breadcrumbsMeta: document.getElementById("breadcrumbs-meta"),
+      completionToggle: document.getElementById("completion-toggle"),
+      rootSelect: document.getElementById("root-select"),
+      productInput: document.getElementById("product-input"),
+      typeSelect: document.getElementById("type-select"),
+      platformSelect: document.getElementById("platform-select"),
+      editionSelect: document.getElementById("edition-select"),
+      customSegment: document.getElementById("custom-segment"),
+      suggestions: document.getElementById("suggestions"),
+      bottomTitle: document.getElementById("bottom-title"),
+      bottomProgress: document.getElementById("bottom-progress"),
+      bottomRating: document.getElementById("bottom-rating"),
+      copyLink: document.getElementById("copy-link"),
+      openLink: document.getElementById("open-link"),
+      toggleComment: document.getElementById("toggle-comment"),
+      closeComment: document.getElementById("close-comment"),
+      saveComment: document.getElementById("save-comment"),
+      commentInput: document.getElementById("comment-input"),
+      saveBtn: document.getElementById("save-btn"),
+      completeBtn: document.getElementById("complete-btn"),
+      prevBtn: document.getElementById("prev-btn"),
+      nextBtn: document.getElementById("next-btn"),
+      bottomBarToggle: document.getElementById("toggle-comment"),
+      progressIndicator: document.getElementById("bottom-progress"),
+      runSyncBtn: document.getElementById("run-sync-btn"),
+      toggleAutoBtn: document.getElementById("toggle-auto-btn"),
+      metricPull: document.getElementById("metric-pull"),
+      metricPush: document.getElementById("metric-push"),
+      metricStatus: document.getElementById("metric-status"),
+    };
+
+    function initSelect(select, options) {
+      select.innerHTML = "";
+      for (const value of options) {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value || "—";
+        select.append(option);
+      }
+    }
+
+    function bindTabs() {
+      elements.tabs.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const target = btn.dataset.tabTarget;
+          elements.tabs.forEach((b) => b.classList.toggle("active", b === btn));
+          elements.contents.forEach((section) => {
+            section.classList.toggle("active", section.id === target);
+          });
+        });
+      });
+    }
+
+    function showToast(message, tone = "info") {
+      elements.toast.textContent = message;
+      elements.toast.style.borderColor = tone === "error" ? "rgba(255,95,109,0.65)" : "rgba(76,125,255,0.65)";
+      elements.toast.classList.add("visible");
+      clearTimeout(elements.toast._timer);
+      elements.toast._timer = setTimeout(() => {
+        elements.toast.classList.remove("visible");
+      }, 3200);
+    }
+
+    async function apiFetch(url, options = {}) {
+      const opts = { credentials: "include", ...options };
+      const defaultHeaders = { Accept: "application/json" };
+      opts.headers = Object.assign(defaultHeaders, options.headers || {});
+      if (opts.body !== undefined && opts.body !== null) {
+        if (typeof opts.body !== "string") {
+          opts.body = JSON.stringify(opts.body);
+        }
+        if (!opts.headers["Content-Type"]) {
+          opts.headers["Content-Type"] = "application/json";
+        }
+      } else {
+        delete opts.headers["Content-Type"];
+      }
+      const response = await fetch(url, opts);
+      if (response.status === 204) {
+        return null;
+      }
+      if (!response.ok) {
+        let detail = "Ошибка запроса";
+        try {
+          const data = await response.json();
+          detail = data.detail || JSON.stringify(data);
+        } catch (err) {
+          detail = response.statusText;
+        }
+        throw new Error(detail);
+      }
+      return response.json();
+    }
+
+    async function checkAuth() {
+      try {
+        const data = await apiFetch("/api/auth/me");
+        state.user = data;
+        elements.userInfo.textContent = `${data.display_name || data.email} (${data.role})`;
+        elements.logoutBtn.hidden = false;
+        elements.loginView.hidden = true;
+        elements.workspaceView.hidden = false;
+        elements.bottomBar.hidden = false;
+        await Promise.all([loadItems(), loadSyncSettings()]);
+      } catch (err) {
+        state.user = null;
+        elements.userInfo.textContent = "Неавторизован";
+        elements.logoutBtn.hidden = true;
+        elements.loginView.hidden = false;
+        elements.workspaceView.hidden = true;
+        elements.bottomBar.hidden = true;
+      }
+    }
+
+    async function loadItems(page = 1) {
+      try {
+        const data = await apiFetch(`/api/items?page=${page}&page_size=20`);
+        state.items = data.results || [];
+        state.totalItems = data.count || state.items.length;
+        renderItemList();
+        if (state.items.length && !state.selected) {
+          selectItem(state.items[0]);
+        }
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    function renderItemList() {
+      elements.itemList.innerHTML = "";
+      if (!state.items.length) {
+        const empty = document.createElement("div");
+        empty.textContent = "Очередь пуста";
+        empty.style.color = "var(--muted)";
+        elements.itemList.append(empty);
+        return;
+      }
+      state.items.forEach((item) => {
+        const card = document.createElement("div");
+        card.className = "item-card";
+        if (state.selected && state.selected.id === item.id) {
+          card.classList.add("active");
+        }
+        card.innerHTML = `
+          <div style="font-weight:600;font-size:14px;">${formatBreadcrumb(item.final_breadcrumbs) || "Не заполнено"}</div>
+          <small>${item.product_url}</small>
+          <small>Статус: ${item.move_status || "—"}</small>
+        `;
+        card.addEventListener("click", () => selectItem(item));
+        elements.itemList.append(card);
+      });
+      const idx = state.selected ? state.items.findIndex((entry) => entry.id === state.selected.id) : -1;
+      const position = idx >= 0 ? idx + 1 : 0;
+      elements.bottomProgress.textContent = `${position} из ${state.totalItems}`;
+    }
+
+    function formatBreadcrumb(bc) {
+      return (bc || "").split("> ").join(" › ");
+    }
+
+    async function selectItem(item) {
+      state.selected = item;
+      renderItemList();
+      elements.statusSelect.value = item.move_status || "";
+      updatePathBuilderFromItem(item);
+      elements.statusMeta.textContent = formatAudit(item.move_status_set_at, item.move_status_set_by);
+      elements.breadcrumbsMeta.textContent = formatAudit(item.breadcrumbs_set_at, item.breadcrumbs_set_by);
+      elements.productLink.href = item.product_url;
+      elements.productLink.textContent = item.product_url;
+      elements.productAssignee.textContent = item.assignee_name || "—";
+      elements.productStatus.textContent = item.move_status || "—";
+      elements.bottomTitle.textContent = item.final_breadcrumbs || item.product_url;
+      state.commentDraft = item.comment || "";
+      elements.commentInput.value = state.commentDraft;
+      const idx = state.items.findIndex((entry) => entry.id === item.id);
+      elements.progressIndicator.textContent = `${idx >= 0 ? idx + 1 : 0} из ${state.totalItems}`;
+      const canComplete = Boolean(item.move_status && item.final_breadcrumbs && !item.is_completed);
+      elements.completeBtn.disabled = !canComplete;
+      elements.completionToggle.checked = item.is_completed;
+      updateBottomRating();
+      renderDescription("Загрузка…");
+      fetchProductDetails(item.product_url);
+      loadSuggestions(item.id);
+    }
+
+    function updateBottomRating() {
+      const seller = state.product?.seller?.rating;
+      if (seller) {
+        elements.bottomRating.textContent = `Рейтинг продавца: ${seller}`;
+      } else {
+        elements.bottomRating.textContent = "";
+      }
+    }
+
+    function renderDescription(text, details = "") {
+      elements.descriptionContent.innerHTML = text || "—";
+      elements.detailsContent.innerHTML = details || "—";
+    }
+
+    async function fetchProductDetails(url) {
+      if (!url) {
+        renderDescription("—");
+        return;
+      }
+      try {
+        const data = await apiFetch(`/api/fetchProduct?url=${encodeURIComponent(url)}`, {
+          method: "GET",
+          headers: { "Accept": "application/json" },
+        });
+        state.product = data;
+        updateBottomRating();
+        elements.productPrice.textContent = data.price ? `${data.price} ₽` : "—";
+        if (data.seller) {
+          const sellerLink = data.seller.url ? `<a href="${data.seller.url}" target="_blank">${data.seller.name}</a>` : data.seller.name;
+          const rating = data.seller.rating ? ` · ★ ${data.seller.rating}` : "";
+          elements.productSeller.innerHTML = `${sellerLink}${rating}`;
+        } else {
+          elements.productSeller.textContent = "—";
+        }
+        renderDescription(data.description || "Описание отсутствует", data.breadcrumbs?.join(" › ") || "");
+        if (data.images && data.images.length) {
+          const img = document.createElement("img");
+          img.src = data.images[0];
+          img.alt = data.title || "";
+          elements.productMedia.innerHTML = "";
+          elements.productMedia.append(img);
+        } else {
+          elements.productMedia.innerHTML = "";
+          elements.productMedia.append(elements.mediaPlaceholder);
+        }
+      } catch (err) {
+        renderDescription("Не удалось загрузить описание", err.message);
+        elements.productMedia.innerHTML = "";
+        elements.productMedia.append(elements.mediaPlaceholder);
+      }
+    }
+
+    async function loadSuggestions(itemId) {
+      try {
+        const data = await apiFetch(`/api/items/${itemId}/suggestions`);
+        state.suggestions = data;
+        renderSuggestions();
+      } catch (err) {
+        state.suggestions = [];
+        renderSuggestions();
+        showToast(err.message, "error");
+      }
+    }
+
+    function renderSuggestions() {
+      elements.suggestions.innerHTML = "";
+      if (!state.suggestions.length) {
+        const empty = document.createElement("div");
+        empty.style.color = "var(--muted)";
+        empty.textContent = "Подсказок нет";
+        elements.suggestions.append(empty);
+        return;
+      }
+      state.suggestions.forEach((suggestion) => {
+        const div = document.createElement("div");
+        div.className = "suggestion";
+        div.innerHTML = `
+          <div class="suggestion-header">
+            <strong>${suggestion.path}</strong>
+            <div style="display:flex;gap:8px;">
+              <button data-action="insert">Вставить</button>
+              <button data-action="copy">Копировать</button>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--muted);">${suggestion.source || "—"} · score ${suggestion.score?.toFixed?.(2) ?? suggestion.score}</div>
+        `;
+        div.querySelector('[data-action="insert"]').addEventListener("click", () => applySuggestion(suggestion.path));
+        div.querySelector('[data-action="copy"]').addEventListener("click", () => {
+          navigator.clipboard.writeText(suggestion.path);
+          showToast("Путь скопирован");
+        });
+        elements.suggestions.append(div);
+      });
+    }
+
+    function applySuggestion(path) {
+      const segments = (path || "").split("> ").map((part) => part.trim()).filter(Boolean);
+      elements.rootSelect.value = segments[0] || "";
+      elements.productInput.value = segments[1] || "";
+      elements.typeSelect.value = typeOptions.includes(segments[2]) ? segments[2] : "";
+      elements.platformSelect.value = platformOptions.includes(segments[3]) ? segments[3] : "";
+      elements.editionSelect.value = editionOptions.includes(segments[4]) ? segments[4] : "";
+      const extras = segments
+        .slice(2)
+        .filter((segment) => !typeOptions.includes(segment) && !platformOptions.includes(segment) && !editionOptions.includes(segment));
+      elements.customSegment.value = extras.join(" > ");
+      updateBreadcrumbPreview();
+    }
+
+    function updatePathBuilderFromItem(item) {
+      const segments = (item.final_breadcrumbs || "").split("> ").map((p) => p.trim()).filter(Boolean);
+      elements.rootSelect.value = segments[0] || "";
+      elements.productInput.value = segments[1] || "";
+      elements.typeSelect.value = typeOptions.includes(segments[2]) ? segments[2] : "";
+      elements.platformSelect.value = platformOptions.includes(segments[3]) ? segments[3] : "";
+      elements.editionSelect.value = editionOptions.includes(segments[4]) ? segments[4] : "";
+      const extra = segments
+        .slice(2)
+        .filter((seg) => !typeOptions.includes(seg) && !platformOptions.includes(seg) && !editionOptions.includes(seg));
+      elements.customSegment.value = extra.join(" > ");
+      updateBreadcrumbPreview();
+    }
+
+    function gatherBreadcrumb() {
+      const parts = [];
+      const root = elements.rootSelect.value.trim();
+      if (root) parts.push(root);
+      const product = elements.productInput.value.trim();
+      if (product) parts.push(product);
+      const type = elements.typeSelect.value.trim();
+      if (type) parts.push(type);
+      const platform = elements.platformSelect.value.trim();
+      if (platform) parts.push(platform);
+      const edition = elements.editionSelect.value.trim();
+      if (edition) parts.push(edition);
+      const extras = elements.customSegment.value
+        .split(/\s*>\s*|\s{2,}/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      parts.push(...extras);
+      return parts.join(" > ");
+    }
+
+    function updateBreadcrumbPreview() {
+      const value = gatherBreadcrumb();
+      elements.breadcrumbPreview.textContent = value || "—";
+      const canComplete = Boolean(value && elements.statusSelect.value && state.selected && !state.selected.is_completed);
+      elements.completeBtn.disabled = !canComplete;
+    }
+
+    function formatAudit(dateString, actor) {
+      if (!dateString) return "—";
+      const date = new Date(dateString);
+      return `${date.toLocaleString("ru-RU", { timeZone: "Europe/Moscow" })}${actor ? ` · ${actor}` : ""}`;
+    }
+
+    async function saveItem() {
+      if (!state.selected) return;
+      const payload = {
+        move_status: elements.statusSelect.value,
+        final_breadcrumbs: gatherBreadcrumb(),
+        comment: state.commentDraft,
+      };
+      try {
+        const data = await apiFetch(`/api/items/${state.selected.id}/`, {
+          method: "PATCH",
+          body: payload,
+        });
+        showToast("Изменения сохранены");
+        state.selected = data;
+        const index = state.items.findIndex((item) => item.id === data.id);
+        if (index >= 0) state.items[index] = data;
+        selectItem(data);
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    async function completeItem() {
+      if (!state.selected) return;
+      if (!elements.statusSelect.value || !gatherBreadcrumb()) {
+        showToast("Укажите статус и крошки", "error");
+        return;
+      }
+      try {
+        const data = await apiFetch(`/api/items/${state.selected.id}/complete/`, { method: "POST" });
+        showToast("Карточка завершена", "success");
+        const index = state.items.findIndex((item) => item.id === data.id);
+        if (index >= 0) state.items[index] = data;
+        selectItem(data);
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    async function navigateQueue(direction) {
+      if (!state.selected) return;
+      try {
+        const endpoint = direction === "next" ? "next" : "prev";
+        const data = await apiFetch(`/api/items/${endpoint}?current=${state.selected.id}`);
+        showToast(direction === "next" ? "Следующая карточка" : "Предыдущая карточка");
+        const index = state.items.findIndex((item) => item.id === data.id);
+        if (index === -1) {
+          state.items.push(data);
+        }
+        selectItem(data);
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    async function copyLink() {
+      if (!state.selected) return;
+      await navigator.clipboard.writeText(state.selected.product_url);
+      showToast("Ссылка скопирована");
+    }
+
+    function openLink() {
+      if (!state.selected) return;
+      window.open(state.selected.product_url, "_blank");
+    }
+
+    function toggleCommentSheet(open) {
+      if (typeof open === "boolean") {
+        elements.commentSheet.classList.toggle("open", open);
+      } else {
+        elements.commentSheet.classList.toggle("open");
+      }
+      if (elements.commentSheet.classList.contains("open")) {
+        elements.commentInput.focus();
+      }
+    }
+
+    function handleCommentInput() {
+      state.commentDraft = elements.commentInput.value;
+    }
+
+    function handleStatusChange() {
+      const canComplete = Boolean(elements.statusSelect.value && gatherBreadcrumb() && state.selected && !state.selected.is_completed);
+      elements.completeBtn.disabled = !canComplete;
+    }
+
+    async function saveComment() {
+      await saveItem();
+      toggleCommentSheet(false);
+    }
+
+    async function login(event) {
+      event.preventDefault();
+      const email = document.getElementById("login-email").value.trim();
+      const password = document.getElementById("login-password").value.trim();
+      if (!email || !password) {
+        showToast("Введите email и пароль", "error");
+        return;
+      }
+      try {
+        await apiFetch("/api/auth/login", { method: "POST", body: { email, password } });
+        showToast("Добро пожаловать");
+        await checkAuth();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    async function logout() {
+      try {
+        await apiFetch("/api/auth/logout", { method: "POST" });
+      } catch (err) {
+        // ignore
+      }
+      state.selected = null;
+      state.items = [];
+      state.totalItems = 0;
+      elements.itemList.innerHTML = "";
+      elements.bottomBar.hidden = true;
+      await checkAuth();
+    }
+
+    async function loadSyncSettings() {
+      try {
+        const data = await apiFetch("/api/admin/sync/auto", { method: "GET" });
+        state.syncSettings = data.settings;
+        updateSyncPanel();
+      } catch (err) {
+        elements.runSyncBtn.disabled = true;
+        elements.toggleAutoBtn.disabled = true;
+      }
+    }
+
+    function updateSyncPanel() {
+      if (!state.syncSettings) return;
+      elements.metricPull.textContent = state.syncSettings.last_pull_at || "—";
+      elements.metricPush.textContent = state.syncSettings.last_push_at || "—";
+      elements.metricStatus.textContent = state.syncSettings.last_sync_status || "—";
+      elements.toggleAutoBtn.textContent = state.syncSettings.auto_sync_enabled ? "Выключить автосинк" : "Включить автосинк";
+    }
+
+    async function runSync() {
+      try {
+        await apiFetch("/api/admin/sync/run", { method: "POST" });
+        showToast("Синк запущен");
+        await loadSyncSettings();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    async function toggleAuto() {
+      try {
+        const data = await apiFetch("/api/admin/sync/auto", { method: "POST" });
+        state.syncSettings = data.settings;
+        showToast(data.settings.auto_sync_enabled ? "Автосинк включен" : "Автосинк выключен");
+        updateSyncPanel();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    function bindEvents() {
+      document.getElementById("login-form").addEventListener("submit", login);
+      elements.logoutBtn.addEventListener("click", logout);
+      elements.copyLink.addEventListener("click", copyLink);
+      elements.openLink.addEventListener("click", openLink);
+      elements.toggleComment.addEventListener("click", () => toggleCommentSheet());
+      elements.closeComment.addEventListener("click", () => toggleCommentSheet(false));
+      elements.saveComment.addEventListener("click", saveComment);
+      elements.commentInput.addEventListener("input", handleCommentInput);
+      elements.saveBtn.addEventListener("click", saveItem);
+      elements.completeBtn.addEventListener("click", completeItem);
+      elements.prevBtn.addEventListener("click", () => navigateQueue("prev"));
+      elements.nextBtn.addEventListener("click", () => navigateQueue("next"));
+      elements.statusSelect.addEventListener("change", handleStatusChange);
+      [elements.rootSelect, elements.productInput, elements.typeSelect, elements.platformSelect, elements.editionSelect, elements.customSegment].forEach((el) => {
+        el.addEventListener("input", updateBreadcrumbPreview);
+        el.addEventListener("change", updateBreadcrumbPreview);
+      });
+      document.querySelectorAll(".accordion-toggle").forEach((button) => {
+        button.addEventListener("click", () => {
+          const contentId = button.dataset.accordion + "-content";
+          const content = document.getElementById(contentId);
+          const isActive = content.classList.toggle("active");
+          button.querySelector("span").textContent = isActive ? "▼" : "▲";
+        });
+      });
+      if (elements.runSyncBtn) elements.runSyncBtn.addEventListener("click", runSync);
+      if (elements.toggleAutoBtn) elements.toggleAutoBtn.addEventListener("click", toggleAuto);
+    }
+
+    function init() {
+      bindTabs();
+      bindEvents();
+      initSelect(elements.statusSelect, moveStatusOptions);
+      initSelect(elements.rootSelect, rootOptions);
+      initSelect(elements.typeSelect, typeOptions);
+      initSelect(elements.platformSelect, platformOptions);
+      initSelect(elements.editionSelect, editionOptions);
+      updateBreadcrumbPreview();
+      checkAuth();
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>
