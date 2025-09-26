@@ -74,7 +74,8 @@ async function main() {
         completedAt: i % 3 === 0 ? now : null,
         isCompleted: i % 3 === 0,
         movedFlagRaw: i % 2 === 0 ? 'Да' : 'Нет',
-        comment: i % 2 === 0 ? 'Комментарий' : null
+        comment: i % 2 === 0 ? 'Комментарий' : null,
+        rowIndex: i
       }
     });
   }

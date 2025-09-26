@@ -14,8 +14,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const pagination = paginationSchema.parse({
-    page: req.query.page ?? '1',
-    pageSize: req.query.pageSize ?? '25'
+    page: req.query.page,
+    pageSize: req.query.pageSize
   });
 
   const status = req.query.status;
@@ -32,7 +32,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     dateTo: typeof req.query.dateTo === 'string' ? req.query.dateTo : undefined
   } as const;
 
-  const { items, total } = await listItems(filters, pagination.page, pagination.pageSize);
+  const { items, total, hasMore } = await listItems(filters, pagination.page, pagination.pageSize);
 
-  res.status(200).json({ items, total, page: pagination.page, pageSize: pagination.pageSize });
+  res
+    .status(200)
+    .json({ items, total, hasMore, page: pagination.page, pageSize: pagination.pageSize });
 }

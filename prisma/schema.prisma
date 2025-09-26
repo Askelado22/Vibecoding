@@ -33,6 +33,7 @@ model Item {
   movedFlagRaw         String?
   comment              String?
   isCompleted          Boolean    @default(false)
+  rowIndex             Int        @default(2147483647)
   createdAt            DateTime   @default(now())
   updatedAt            DateTime   @default(now())
 }
