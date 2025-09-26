@@ -78,8 +78,7 @@ function handlePush(e) {
     const rowIndex = indexMap[productUrl];
     if (rowIndex) {
       const targetRange = context.sheet.getRange(rowIndex, 1, 1, HEADERS.length);
-      relaxDataValidations(targetRange);
-      targetRange.setValues([row]);
+      setValuesBypassingValidation(targetRange, [row]);
       updated += 1;
     } else {
       appendBuffer.push(row);
@@ -89,8 +88,7 @@ function handlePush(e) {
   if (appendBuffer.length > 0) {
     const startRow = Math.max(context.sheet.getLastRow(), 1) + 1;
     const appendRange = context.sheet.getRange(startRow, 1, appendBuffer.length, HEADERS.length);
-    relaxDataValidations(appendRange);
-    appendRange.setValues(appendBuffer);
+    setValuesBypassingValidation(appendRange, appendBuffer);
   }
 
   return { updated, appended: appendBuffer.length };
@@ -341,30 +339,16 @@ function jsonResponse(payload, statusCode) {
   return output;
 }
 
-function relaxDataValidations(range) {
+function setValuesBypassingValidation(range, values) {
   if (!range) return;
   const validations = range.getDataValidations();
-  if (!validations) return;
-  let mutated = false;
-  const relaxed = validations.map((row) =>
-    row.map((rule) => {
-      if (!rule) return rule;
-      if (rule.getAllowInvalid && rule.getAllowInvalid()) {
-        return rule;
-      }
-      if (rule.copy) {
-        const builder = rule.copy();
-        if (builder.setAllowInvalid) {
-          builder.setAllowInvalid(true);
-          mutated = true;
-          return builder.build();
-        }
-      }
-      return rule;
-    })
-  );
-  if (mutated) {
-    range.setDataValidations(relaxed);
+  try {
+    range.clearDataValidations();
+    range.setValues(values);
+  } finally {
+    if (validations) {
+      range.setDataValidations(validations);
+    }
   }
 }
 
