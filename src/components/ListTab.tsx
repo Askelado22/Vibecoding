@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   MOVE_STATUS_OPTIONS,
   getMoveStatusLabel,
@@ -31,9 +31,10 @@ type ListTabProps = {
 export function ListTab({ user }: ListTabProps) {
   const { showToast } = useToast();
   const [items, setItems] = useState<Item[]>([]);
-  const [page, setPage] = useState(1);
-  const [pageSize] = useState(20);
-  const [total, setTotal] = useState(0);
+  const [nextPage, setNextPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const requestIdRef = useRef(0);
   const [status, setStatus] = useState<MoveStatusValue | ''>('');
   const [assignee, setAssignee] = useState('');
   const [query, setQuery] = useState('');
@@ -42,41 +43,60 @@ export function ListTab({ user }: ListTabProps) {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
-  const fetchItems = useCallback(() => {
-    const params = new URLSearchParams();
-    params.set('page', String(page));
-    params.set('pageSize', String(pageSize));
-    if (status) params.set('status', status);
-    if (assignee) params.set('assignee', assignee);
-    if (query) params.set('query', query);
-    if (hasBreadcrumbs) params.set('hasBreadcrumbs', hasBreadcrumbs);
-    if (isCompleted) params.set('isCompleted', isCompleted);
-    if (dateFrom) params.set('dateFrom', dateFrom);
-    if (dateTo) params.set('dateTo', dateTo);
-    fetch(`/api/items?${params.toString()}`)
-      .then(async (res) => {
+  const PAGE_SIZE = 100;
+
+  const loadItems = useCallback(
+    async (pageToLoad: number, append: boolean) => {
+      const params = new URLSearchParams();
+      params.set('page', String(pageToLoad));
+      params.set('pageSize', String(PAGE_SIZE));
+      if (status) params.set('status', status);
+      if (assignee) params.set('assignee', assignee);
+      if (query) params.set('query', query);
+      if (hasBreadcrumbs) params.set('hasBreadcrumbs', hasBreadcrumbs);
+      if (isCompleted) params.set('isCompleted', isCompleted);
+      if (dateFrom) params.set('dateFrom', dateFrom);
+      if (dateTo) params.set('dateTo', dateTo);
+
+      if (!append) {
+        setItems([]);
+        setHasMore(false);
+        setNextPage(1);
+      }
+
+      const requestId = ++requestIdRef.current;
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/items?${params.toString()}`);
         const data = await res.json();
         if (!res.ok) {
-          showToast(data.error || 'Не удалось загрузить список', 'error');
+          if (requestId === requestIdRef.current) {
+            showToast(data.error || 'Не удалось загрузить список', 'error');
+          }
           return;
         }
-        setItems(data.items || []);
-        setTotal(data.total || 0);
-      })
-      .catch(() => {
-        showToast('Не удалось загрузить список', 'error');
-      });
-  }, [assignee, dateFrom, dateTo, hasBreadcrumbs, isCompleted, page, pageSize, query, showToast, status]);
+        const received: Item[] = data.items || [];
+        if (requestId === requestIdRef.current) {
+          setItems((prev) => (append ? [...prev, ...received] : received));
+          setHasMore(Boolean(data.hasMore));
+          setNextPage(pageToLoad + 1);
+        }
+      } catch (error) {
+        if (requestId === requestIdRef.current) {
+          showToast('Не удалось загрузить список', 'error');
+        }
+      } finally {
+        if (requestId === requestIdRef.current) {
+          setLoading(false);
+        }
+      }
+    },
+    [assignee, dateFrom, dateTo, hasBreadcrumbs, isCompleted, query, showToast, status]
+  );
 
   useEffect(() => {
-    fetchItems();
-  }, [fetchItems]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [status, assignee, query, hasBreadcrumbs, isCompleted, dateFrom, dateTo]);
-
-  const totalPages = useMemo(() => Math.max(1, Math.ceil(Math.max(total, 0) / pageSize)), [pageSize, total]);
+    loadItems(1, false);
+  }, [loadItems]);
 
   const formatDate = useCallback((value: string | null) => (value ? new Date(value).toLocaleString('ru-RU') : '—'), []);
 
@@ -84,7 +104,7 @@ export function ListTab({ user }: ListTabProps) {
     const res = await fetch(`/api/items/${item.id}/assign`, { method: 'POST' });
     if (res.ok) {
       showToast('Товар добавлен в очередь');
-      fetchItems();
+      await loadItems(1, false);
     } else {
       const data = await res.json();
       showToast(data.error || 'Не удалось взять товар', 'error');
@@ -95,11 +115,26 @@ export function ListTab({ user }: ListTabProps) {
     const res = await fetch(`/api/items/${item.id}/unassign`, { method: 'POST' });
     if (res.ok) {
       showToast('Товар снят');
-      fetchItems();
+      await loadItems(1, false);
     } else {
       const data = await res.json();
       showToast(data.error || 'Не удалось снять товар', 'error');
     }
+  };
+
+  const resetFilters = () => {
+    setStatus('');
+    setAssignee('');
+    setQuery('');
+    setHasBreadcrumbs('');
+    setIsCompleted('');
+    setDateFrom('');
+    setDateTo('');
+  };
+
+  const loadMore = () => {
+    if (loading || !hasMore) return;
+    loadItems(nextPage, true);
   };
 
   return (
@@ -161,16 +196,10 @@ export function ListTab({ user }: ListTabProps) {
             className="rounded-md border border-surfaceAlt bg-surfaceAlt p-2 text-sm text-white"
           />
           <button
-            onClick={() => {
-              if (page === 1) {
-                fetchItems();
-              } else {
-                setPage(1);
-              }
-            }}
-            className="rounded-md bg-accentBlue px-3 py-2 text-sm text-white"
+            onClick={resetFilters}
+            className="rounded-md bg-surfaceAlt px-3 py-2 text-sm text-gray-300 hover:bg-accentPink/20"
           >
-            Применить
+            Сбросить
           </button>
         </div>
       </div>
@@ -243,26 +272,22 @@ export function ListTab({ user }: ListTabProps) {
         </table>
       </div>
 
-      <div className="flex items-center justify-between text-sm text-gray-300">
-        <span>
-          Страница {page} из {totalPages} (всего {total})
-        </span>
-        <div className="flex gap-2">
+      <div className="flex justify-center">
+        {loading && items.length === 0 ? (
+          <span className="text-sm text-gray-400">Загрузка…</span>
+        ) : hasMore ? (
           <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="rounded-md bg-surfaceAlt px-3 py-1 hover:bg-accentPink/20 disabled:opacity-50"
+            onClick={loadMore}
+            disabled={loading}
+            className="rounded-md bg-accentBlue px-4 py-2 text-sm text-white hover:bg-blue-600 disabled:opacity-50"
           >
-            Назад
+            {loading ? 'Загрузка…' : 'Загрузить ещё'}
           </button>
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="rounded-md bg-surfaceAlt px-3 py-1 hover:bg-accentPink/20 disabled:opacity-50"
-          >
-            Вперёд
-          </button>
-        </div>
+        ) : items.length === 0 ? (
+          <span className="text-sm text-gray-400">Нет записей</span>
+        ) : (
+          <span className="text-sm text-gray-400">Все записи загружены</span>
+        )}
       </div>
     </div>
   );

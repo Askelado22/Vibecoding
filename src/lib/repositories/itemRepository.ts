@@ -64,17 +64,25 @@ export async function listItems(
     }
   }
 
+  const orderBy: Prisma.ItemOrderByWithRelationInput[] = [
+    { rowIndex: 'asc' },
+    { createdAt: 'asc' },
+    { id: 'asc' }
+  ];
+
   const [items, total] = await Promise.all([
     prisma.item.findMany({
       where,
-      orderBy: { updatedAt: 'desc' },
+      orderBy,
       skip: (page - 1) * pageSize,
       take: pageSize
     }),
     prisma.item.count({ where })
   ]);
 
-  return { items, total };
+  const hasMore = page * pageSize < total;
+
+  return { items, total, hasMore };
 }
 
 export async function getQueueItems(displayName: string) {

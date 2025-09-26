@@ -29,6 +29,8 @@ export function AdminTab() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [newUser, setNewUser] = useState({ email: '', password: '', role: 'worker', displayName: '' });
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editUser, setEditUser] = useState({ email: '', password: '', role: 'worker' as User['role'], displayName: '' });
 
   const loadMetrics = () => {
     fetch('/api/admin/metrics')
@@ -103,6 +105,43 @@ export function AdminTab() {
     } else {
       const data = await res.json();
       showToast(data.error || 'Ошибка создания пользователя', 'error');
+    }
+  };
+
+  const startEditUser = (user: User) => {
+    setEditingUserId(user.id);
+    setEditUser({ email: user.email, password: '', role: user.role, displayName: user.displayName });
+  };
+
+  const cancelEdit = () => {
+    setEditingUserId(null);
+    setEditUser({ email: '', password: '', role: 'worker', displayName: '' });
+  };
+
+  const saveEditUser = async () => {
+    if (!editingUserId) return;
+    const payload: Record<string, unknown> = {
+      email: editUser.email,
+      role: editUser.role,
+      displayName: editUser.displayName
+    };
+    if (editUser.password) {
+      payload.password = editUser.password;
+    }
+
+    const res = await fetch(`/api/admin/users/${editingUserId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      showToast('Пользователь обновлён');
+      cancelEdit();
+      loadUsers();
+    } else {
+      const data = await res.json();
+      showToast(data.error || 'Не удалось обновить пользователя', 'error');
     }
   };
 
@@ -261,15 +300,87 @@ export function AdminTab() {
                 <th className="px-3 py-2 text-left">Имя</th>
                 <th className="px-3 py-2 text-left">Роль</th>
                 <th className="px-3 py-2 text-left">Создан</th>
+                <th className="px-3 py-2 text-left">Действия</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-surfaceAlt">
               {users.map((user) => (
                 <tr key={user.id}>
-                  <td className="px-3 py-2">{user.email}</td>
-                  <td className="px-3 py-2">{user.displayName}</td>
-                  <td className="px-3 py-2">{user.role}</td>
+                  <td className="px-3 py-2">
+                    {editingUserId === user.id ? (
+                      <input
+                        className="w-full rounded-md border border-surfaceAlt bg-surfaceAlt p-2 text-sm text-white"
+                        value={editUser.email}
+                        onChange={(event) => setEditUser((prev) => ({ ...prev, email: event.target.value }))}
+                      />
+                    ) : (
+                      user.email
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    {editingUserId === user.id ? (
+                      <input
+                        className="w-full rounded-md border border-surfaceAlt bg-surfaceAlt p-2 text-sm text-white"
+                        value={editUser.displayName}
+                        onChange={(event) =>
+                          setEditUser((prev) => ({ ...prev, displayName: event.target.value }))
+                        }
+                      />
+                    ) : (
+                      user.displayName
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    {editingUserId === user.id ? (
+                      <select
+                        className="w-full rounded-md border border-surfaceAlt bg-surfaceAlt p-2 text-sm text-white"
+                        value={editUser.role}
+                        onChange={(event) =>
+                          setEditUser((prev) => ({ ...prev, role: event.target.value as User['role'] }))
+                        }
+                      >
+                        <option value="worker">worker</option>
+                        <option value="admin">admin</option>
+                      </select>
+                    ) : (
+                      user.role
+                    )}
+                  </td>
                   <td className="px-3 py-2">{new Date(user.createdAt).toLocaleDateString('ru-RU')}</td>
+                  <td className="px-3 py-2">
+                    {editingUserId === user.id ? (
+                      <div className="flex gap-2">
+                        <input
+                          type="password"
+                          placeholder="Новый пароль"
+                          value={editUser.password}
+                          onChange={(event) =>
+                            setEditUser((prev) => ({ ...prev, password: event.target.value }))
+                          }
+                          className="w-40 rounded-md border border-surfaceAlt bg-surfaceAlt p-2 text-sm text-white"
+                        />
+                        <button
+                          onClick={saveEditUser}
+                          className="rounded-md bg-accentBlue px-3 py-1 text-xs text-white hover:bg-blue-600"
+                        >
+                          Сохранить
+                        </button>
+                        <button
+                          onClick={cancelEdit}
+                          className="rounded-md bg-surfaceAlt px-3 py-1 text-xs text-gray-300 hover:bg-accentPink/20"
+                        >
+                          Отмена
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => startEditUser(user)}
+                        className="rounded-md bg-surfaceAlt px-3 py-1 text-xs text-gray-300 hover:bg-accentPink/20"
+                      >
+                        Редактировать
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

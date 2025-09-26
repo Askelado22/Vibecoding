@@ -23,6 +23,7 @@ export type SheetRow = {
   moved_flag_raw: string | null;
   comment: string | null;
   updated_at: Date;
+  row_index: number;
 };
 
 const HEADERS = [
@@ -133,7 +134,7 @@ export async function pullSheetRows(): Promise<SheetRow[]> {
     throw new Error(response.data.error || 'Google Apps Script pull error');
   }
   const rows: string[][] = response.data.rows ?? [];
-  return rows.map((row) => {
+  return rows.map((row, index) => {
     const map = HEADERS.reduce<Record<string, string | null>>((acc, key, idx) => {
       acc[key] = row[idx] ?? null;
       return acc;
@@ -154,12 +155,13 @@ export async function pullSheetRows(): Promise<SheetRow[]> {
       final_breadcrumbs: map.final_breadcrumbs,
       breadcrumbs_set_by: map.breadcrumbs_set_by,
       breadcrumbs_set_at: breadcrumbsDate,
-      priority_raw: map.priority_raw,
+      priority_raw: map.priority_raw ?? '',
       completed_by: map.completed_by,
       completed_at: completedDate,
       moved_flag_raw: map.moved_flag_raw,
       comment: map.comment,
-      updated_at
+      updated_at,
+      row_index: index + 1
     };
   });
 }
