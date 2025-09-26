@@ -6,7 +6,7 @@ import {
 } from '../lib/constants';
 import { useToast } from './ToastProvider';
 
-type Item = {
+export type ListItem = {
   id: number;
   productUrl: string;
   assigneeName: string | null;
@@ -22,6 +22,8 @@ type Item = {
   movedFlagRaw: string | null;
   comment: string | null;
   updatedAt: string;
+  rowIndex: number | null;
+  createdAt: string;
 };
 
 type ListTabProps = {
@@ -30,7 +32,7 @@ type ListTabProps = {
 
 export function ListTab({ user }: ListTabProps) {
   const { showToast } = useToast();
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useState<ListItem[]>([]);
   const [nextPage, setNextPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -42,8 +44,35 @@ export function ListTab({ user }: ListTabProps) {
   const [isCompleted, setIsCompleted] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [showExtra, setShowExtra] = useState(false);
 
   const PAGE_SIZE = 100;
+
+  const prepareItems = useCallback(
+    (list: ListItem[]) => {
+      const copy = [...list];
+      copy.sort((a, b) => {
+        const aMine = a.assigneeName === user.displayName ? 0 : 1;
+        const bMine = b.assigneeName === user.displayName ? 0 : 1;
+        if (aMine !== bMine) {
+          return aMine - bMine;
+        }
+        const aRow = a.rowIndex ?? Number.MAX_SAFE_INTEGER;
+        const bRow = b.rowIndex ?? Number.MAX_SAFE_INTEGER;
+        if (aRow !== bRow) {
+          return aRow - bRow;
+        }
+        const aCreated = new Date(a.createdAt).getTime();
+        const bCreated = new Date(b.createdAt).getTime();
+        if (aCreated !== bCreated) {
+          return aCreated - bCreated;
+        }
+        return a.id - b.id;
+      });
+      return copy;
+    },
+    [user.displayName]
+  );
 
   const loadItems = useCallback(
     async (pageToLoad: number, append: boolean) => {
@@ -75,9 +104,11 @@ export function ListTab({ user }: ListTabProps) {
           }
           return;
         }
-        const received: Item[] = data.items || [];
+        const received: ListItem[] = data.items || [];
         if (requestId === requestIdRef.current) {
-          setItems((prev) => (append ? [...prev, ...received] : received));
+          setItems((prev) =>
+            append ? prepareItems([...prev, ...received]) : prepareItems(received)
+          );
           setHasMore(Boolean(data.hasMore));
           setNextPage(pageToLoad + 1);
         }
@@ -91,7 +122,7 @@ export function ListTab({ user }: ListTabProps) {
         }
       }
     },
-    [assignee, dateFrom, dateTo, hasBreadcrumbs, isCompleted, query, showToast, status]
+    [assignee, dateFrom, dateTo, hasBreadcrumbs, isCompleted, prepareItems, query, showToast, status]
   );
 
   useEffect(() => {
@@ -100,22 +131,26 @@ export function ListTab({ user }: ListTabProps) {
 
   const formatDate = useCallback((value: string | null) => (value ? new Date(value).toLocaleString('ru-RU') : '—'), []);
 
-  const assignItem = async (item: Item) => {
+  const assignItem = async (item: ListItem) => {
     const res = await fetch(`/api/items/${item.id}/assign`, { method: 'POST' });
     if (res.ok) {
+      const data = await res.json();
+      const updated = { ...item, ...(data.item as Partial<ListItem>), assigneeName: user.displayName };
+      setItems((prev) => prepareItems([updated, ...prev.filter((current) => current.id !== item.id)]));
       showToast('Товар добавлен в очередь');
-      await loadItems(1, false);
     } else {
       const data = await res.json();
       showToast(data.error || 'Не удалось взять товар', 'error');
     }
   };
 
-  const unassignItem = async (item: Item) => {
+  const unassignItem = async (item: ListItem) => {
     const res = await fetch(`/api/items/${item.id}/unassign`, { method: 'POST' });
     if (res.ok) {
+      const data = await res.json();
+      const updated = { ...item, ...(data.item as Partial<ListItem>) };
+      setItems((prev) => prepareItems([...prev.filter((current) => current.id !== item.id), updated]));
       showToast('Товар снят');
-      await loadItems(1, false);
     } else {
       const data = await res.json();
       showToast(data.error || 'Не удалось снять товар', 'error');
@@ -201,6 +236,12 @@ export function ListTab({ user }: ListTabProps) {
           >
             Сбросить
           </button>
+          <button
+            onClick={() => setShowExtra((prev) => !prev)}
+            className="rounded-md bg-accentBlue px-3 py-2 text-sm text-white hover:bg-blue-600"
+          >
+            {showExtra ? 'Скрыть доп. инфу' : 'Доп. Инфа'}
+          </button>
         </div>
       </div>
 
@@ -211,18 +252,22 @@ export function ListTab({ user }: ListTabProps) {
               <th className="px-3 py-2 text-left">A · URL</th>
               <th className="px-3 py-2 text-left">B · Исполнитель</th>
               <th className="px-3 py-2 text-left">C · Статус</th>
-              <th className="px-3 py-2 text-left">D · Кто поставил статус</th>
-              <th className="px-3 py-2 text-left">E · Когда статус</th>
               <th className="px-3 py-2 text-left">F · Итоговый путь</th>
-              <th className="px-3 py-2 text-left">G · Кто поставил путь</th>
-              <th className="px-3 py-2 text-left">H · Когда путь</th>
               <th className="px-3 py-2 text-left">I · Приоритет</th>
-              <th className="px-3 py-2 text-left">J · Завершил</th>
-              <th className="px-3 py-2 text-left">K · Когда завершён</th>
-              <th className="px-3 py-2 text-left">L · Флаг переноса</th>
               <th className="px-3 py-2 text-left">M · Комментарий</th>
               <th className="px-3 py-2 text-left">Обновлено</th>
               <th className="px-3 py-2 text-left">Действия</th>
+              {showExtra && (
+                <>
+                  <th className="px-3 py-2 text-left">D · Кто поставил статус</th>
+                  <th className="px-3 py-2 text-left">E · Когда статус</th>
+                  <th className="px-3 py-2 text-left">G · Кто поставил путь</th>
+                  <th className="px-3 py-2 text-left">H · Когда путь</th>
+                  <th className="px-3 py-2 text-left">J · Завершил</th>
+                  <th className="px-3 py-2 text-left">K · Когда завершён</th>
+                  <th className="px-3 py-2 text-left">L · Флаг переноса</th>
+                </>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-surfaceAlt">
@@ -237,15 +282,8 @@ export function ListTab({ user }: ListTabProps) {
                   </td>
                   <td className="px-3 py-2">{item.assigneeName || '—'}</td>
                   <td className="px-3 py-2">{getMoveStatusLabel(item.moveStatus) ?? '—'}</td>
-                  <td className="px-3 py-2">{item.moveStatusSetBy || '—'}</td>
-                  <td className="px-3 py-2">{formatDate(item.moveStatusSetAt)}</td>
                   <td className="px-3 py-2">{item.finalBreadcrumbs || '—'}</td>
-                  <td className="px-3 py-2">{item.breadcrumbsSetBy || '—'}</td>
-                  <td className="px-3 py-2">{formatDate(item.breadcrumbsSetAt)}</td>
                   <td className="px-3 py-2">{item.priorityRaw || '—'}</td>
-                  <td className="px-3 py-2">{item.completedBy || '—'}</td>
-                  <td className="px-3 py-2">{formatDate(item.completedAt)}</td>
-                  <td className="px-3 py-2">{item.movedFlagRaw || '—'}</td>
                   <td className="px-3 py-2">{item.comment || '—'}</td>
                   <td className="px-3 py-2">{formatDate(item.updatedAt)}</td>
                   <td className="px-3 py-2">
@@ -265,6 +303,17 @@ export function ListTab({ user }: ListTabProps) {
                       </button>
                     )}
                   </td>
+                  {showExtra && (
+                    <>
+                      <td className="px-3 py-2">{item.moveStatusSetBy || '—'}</td>
+                      <td className="px-3 py-2">{formatDate(item.moveStatusSetAt)}</td>
+                      <td className="px-3 py-2">{item.breadcrumbsSetBy || '—'}</td>
+                      <td className="px-3 py-2">{formatDate(item.breadcrumbsSetAt)}</td>
+                      <td className="px-3 py-2">{item.completedBy || '—'}</td>
+                      <td className="px-3 py-2">{formatDate(item.completedAt)}</td>
+                      <td className="px-3 py-2">{item.movedFlagRaw || '—'}</td>
+                    </>
+                  )}
                 </tr>
               );
             })}
