@@ -5,6 +5,7 @@ import { ToastProvider } from '../../components/ToastProvider';
 import { WorkTab } from '../../components/WorkTab';
 import { ListTab } from '../../components/ListTab';
 import { AdminTab } from '../../components/AdminTab';
+import { MyItemsTab } from '../../components/MyItemsTab';
 import { prisma } from '../../lib/repositories/prisma';
 import { getTokenName, verifyToken } from '../../lib/auth';
 import { isUserRole } from '../../lib/constants';
@@ -25,6 +26,7 @@ export default function AppPage({ user }: AppPageProps) {
     <ToastProvider>
       <Layout activeTab={activeTab} onTabChange={setActiveTab} user={user}>
         {activeTab === 'work' && <WorkTab user={user} />}
+        {activeTab === 'personal' && <MyItemsTab user={user} />}
         {activeTab === 'list' && <ListTab user={user} />}
         {activeTab === 'admin' && user.role === 'admin' && <AdminTab />}
       </Layout>

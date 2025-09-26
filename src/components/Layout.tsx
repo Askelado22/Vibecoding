@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 
 const tabs = [
   { id: 'work', label: 'Рабочая' },
+  { id: 'personal', label: 'Мои товары' },
   { id: 'list', label: 'Общий список' },
   { id: 'admin', label: 'Админ-панель' }
 ] as const;
