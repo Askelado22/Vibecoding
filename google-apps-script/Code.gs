@@ -342,12 +342,26 @@ function jsonResponse(payload, statusCode) {
 function setValuesBypassingValidation(range, values) {
   if (!range) return;
   const validations = range.getDataValidations();
+  const restoredValidations = (validations || []).map((row) =>
+    row.map((rule) => {
+      if (!rule) return null;
+      if (typeof rule.copy !== 'function') {
+        return rule;
+      }
+      const builder = rule.copy();
+      if (typeof builder.setAllowInvalid === 'function') {
+        builder.setAllowInvalid(true);
+      }
+      return builder.build();
+    })
+  );
   try {
     range.clearDataValidations();
+    SpreadsheetApp.flush();
     range.setValues(values);
   } finally {
     if (validations) {
-      range.setDataValidations(validations);
+      range.setDataValidations(restoredValidations);
     }
   }
 }
