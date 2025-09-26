@@ -45,6 +45,22 @@ const GAS_BASE_URL = process.env.GAS_BASE_URL || '';
 const SHEET_RANGE = process.env.SHEET_RANGE || 'Лист1!A:M';
 const SHEET_SPREADSHEET_ID = process.env.SHEET_SPREADSHEET_ID || '';
 
+function assertGasConfigured(action: 'pull' | 'push') {
+  if (!GAS_BASE_URL) {
+    throw new Error(
+      `Синхронизация с Google Sheets недоступна: переменная окружения GAS_BASE_URL не задана. ` +
+        `Укажите URL опубликованного Google Apps Script веб-приложения в .env перед выполнением ${action}.`
+    );
+  }
+
+  if (GAS_BASE_URL.includes('YOUR_SCRIPT_ID')) {
+    throw new Error(
+      `Синхронизация с Google Sheets недоступна: GAS_BASE_URL содержит плейсхолдер YOUR_SCRIPT_ID. ` +
+        `Замените его на реальный идентификатор веб-приложения Google Apps Script.`
+    );
+  }
+}
+
 function formatAxiosError(action: 'pull' | 'push', error: unknown): string {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError;
@@ -101,7 +117,7 @@ function normalizeMoveStatus(value: string | null): MoveStatusValue | null {
 }
 
 export async function pullSheetRows(): Promise<SheetRow[]> {
-  if (!GAS_BASE_URL) return [];
+  assertGasConfigured('pull');
   const params: Record<string, string> = { action: 'pull', range: SHEET_RANGE };
   if (SHEET_SPREADSHEET_ID) {
     params.spreadsheetId = SHEET_SPREADSHEET_ID;
@@ -168,7 +184,7 @@ export function itemToSheetRow(item: Item): string[] {
 }
 
 export async function pushSheetRows(rows: string[][]) {
-  if (!GAS_BASE_URL) return;
+  assertGasConfigured('push');
   const payload: Record<string, unknown> = {
     action: 'push',
     range: SHEET_RANGE,

@@ -48,6 +48,7 @@ npm run dev
 1. Создайте Google Apps Script, подключенный к нужной таблице (лучше через «Extensions → Apps Script» внутри самой таблицы). Для standalone-проекта укажите ID таблицы в константе `SPREADSHEET_ID` или передавайте его через параметр `spreadsheetId`/переменную окружения `SHEET_SPREADSHEET_ID`.
 2. Скопируйте содержимое файла [`google-apps-script/Code.gs`](google-apps-script/Code.gs) в редактор Apps Script.
 3. Опубликуйте скрипт как веб-приложение с доступом «Anyone with the link». URL поместите в `GAS_BASE_URL`.
+   > ⚠️ После копирования `.env.example` обязательно замените `https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec` на URL из шага выше. При оставленном плейсхолдере приложение остановит синхронизацию с понятной ошибкой.
 4. Убедитесь, что `SHEET_RANGE` в `.env` совпадает с названием вкладки (например, `feedback!A:M`). При необходимости добавьте `SHEET_SPREADSHEET_ID`, чтобы жёстко указать таблицу.
 
 Скрипт реализует:

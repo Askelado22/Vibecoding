@@ -43,6 +43,12 @@ try {
     fs.appendFileSync(envPath, `\n${additions}\n`);
     console.log(`[ensure-env] Добавлены отсутствующие ключи в .env: ${missingKeys.join(', ')}`);
   }
+
+  if (/^GAS_BASE_URL=.*YOUR_SCRIPT_ID/m.test(envContent)) {
+    console.warn(
+      '[ensure-env] GAS_BASE_URL всё ещё указывает на https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec. Замените YOUR_SCRIPT_ID на идентификатор вашего опубликованного веб-приложения Google Apps Script.'
+    );
+  }
 } catch (error) {
   console.error('[ensure-env] Не удалось подготовить .env файл:', error);
   process.exitCode = 1;
