@@ -28,7 +28,7 @@ try {
     'SUGGESTIONS_HTTP_ENDPOINT'
   ];
 
-  const envContent = fs.readFileSync(envPath, 'utf8');
+  let envContent = fs.readFileSync(envPath, 'utf8');
   const exampleContent = fs.readFileSync(examplePath, 'utf8');
   const missingKeys = requiredKeys.filter((key) => !new RegExp(`^${key}=`, 'm').test(envContent));
 
@@ -42,6 +42,55 @@ try {
 
     fs.appendFileSync(envPath, `\n${additions}\n`);
     console.log(`[ensure-env] Добавлены отсутствующие ключи в .env: ${missingKeys.join(', ')}`);
+    envContent = fs.readFileSync(envPath, 'utf8');
+  }
+
+  const prismaSchemaPath = path.join(projectRoot, 'prisma', 'schema.prisma');
+  let usesSqlite = false;
+
+  if (fs.existsSync(prismaSchemaPath)) {
+    try {
+      const schemaContent = fs.readFileSync(prismaSchemaPath, 'utf8');
+      const datasourceMatch = schemaContent.match(/datasource\s+\w+\s*{[^}]*?provider\s*=\s*"([^"]+)"/s);
+
+      if (datasourceMatch && datasourceMatch[1] === 'sqlite') {
+        usesSqlite = true;
+      }
+    } catch (schemaError) {
+      console.warn('[ensure-env] Не удалось прочитать prisma/schema.prisma для определения провайдера БД:', schemaError);
+    }
+  }
+
+  if (usesSqlite) {
+    const envLines = envContent.split(/\r?\n/);
+    const dbUrlIndex = envLines.findIndex((line) => /^DATABASE_URL\s*=/.test(line));
+
+    if (dbUrlIndex !== -1) {
+      const valueMatch = envLines[dbUrlIndex].match(/^DATABASE_URL\s*=\s*(.+)$/);
+
+      if (valueMatch) {
+        let rawValue = valueMatch[1].trim();
+        let quote = '';
+
+        if (rawValue.length >= 2 && ((rawValue.startsWith('"') && rawValue.endsWith('"')) || (rawValue.startsWith("'") && rawValue.endsWith("'")))) {
+          quote = rawValue[0];
+          rawValue = rawValue.slice(1, -1);
+        }
+
+        const hasScheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(rawValue);
+
+        if (rawValue && !hasScheme) {
+          const normalizedPath = rawValue.startsWith('./') || rawValue.startsWith('../') || rawValue.startsWith('/')
+            ? rawValue
+            : `./${rawValue}`;
+          const updatedValue = `file:${normalizedPath}`;
+          envLines[dbUrlIndex] = `DATABASE_URL=${quote ? `${quote}${updatedValue}${quote}` : updatedValue}`;
+          envContent = envLines.join('\n');
+          fs.writeFileSync(envPath, `${envContent}\n`);
+          console.log('[ensure-env] DATABASE_URL приведён к формату file: для SQLite.');
+        }
+      }
+    }
   }
 
   if (/^GAS_BASE_URL=.*YOUR_SCRIPT_ID/m.test(envContent)) {
