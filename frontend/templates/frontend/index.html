@@ -1,0 +1,1786 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GGSEL Разбор товаров</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --surface: #0f1220;
+      --surface-alt: #111322;
+      --surface-elevated: #171a2d;
+      --border: #1f2437;
+      --border-strong: #2c3247;
+      --text: #e9ecf1;
+      --text-muted: #a8afbf;
+      --accent-blue: #4f7dff;
+      --accent-blue-hover: #6d96ff;
+      --accent-pink: #f06ca5;
+      --accent-pink-hover: #f58bbb;
+      --success: #44c086;
+      --danger: #ff6b6b;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --header-height: 72px;
+      --bottom-bar-height: 64px;
+      --max-width: 1760px;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: radial-gradient(circle at 50% -120%, rgba(79, 125, 255, 0.25), transparent 55%),
+        var(--surface);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5 {
+      margin: 0;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    p {
+      margin: 0;
+    }
+
+    button,
+    select,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    header {
+      height: var(--header-height);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      background: rgba(17, 19, 34, 0.92);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .project-title {
+      font-size: 18px;
+      letter-spacing: 0.02em;
+    }
+
+    .project-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .app-tabs {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      height: 100%;
+    }
+
+    .tab-link {
+      position: relative;
+      padding: 18px 0;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 15px;
+      transition: color 0.2s ease;
+    }
+
+    .tab-link:hover {
+      color: var(--text);
+    }
+
+    .tab-link.active {
+      color: var(--text);
+    }
+
+    .tab-link.active::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 12px;
+      width: 100%;
+      height: 3px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent-blue), var(--accent-pink));
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(23, 26, 45, 0.8);
+    }
+
+    .user-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent-blue);
+      color: #fff;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .user-name {
+      font-size: 14px;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      padding: 0 24px;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: var(--max-width);
+      padding: 24px 0 96px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      height: calc(100vh - var(--header-height) - var(--bottom-bar-height));
+    }
+
+    .tab-panel {
+      display: none;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .tab-panel.active {
+      display: flex;
+    }
+
+    .workspace-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 9fr) minmax(0, 3fr);
+      gap: 24px;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      min-height: 0;
+    }
+
+    .card {
+      background: rgba(17, 19, 34, 0.92);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: 0 24px 48px rgba(8, 11, 24, 0.32);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .card-title {
+      font-size: 16px;
+    }
+
+    .product-media {
+      display: grid;
+      grid-template-columns: 1fr 220px;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .cover {
+      position: relative;
+      padding-top: 56.25%;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(79, 125, 255, 0.35), rgba(240, 108, 165, 0.2));
+    }
+
+    .cover img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .thumb-strip {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .thumb-list {
+      display: flex;
+      gap: 8px;
+      overflow: hidden;
+    }
+
+    .thumb-list img {
+      width: 64px;
+      height: 64px;
+      border-radius: var(--radius-sm);
+      object-fit: cover;
+      border: 1px solid transparent;
+      cursor: pointer;
+    }
+
+    .thumb-list img.active {
+      border-color: var(--accent-blue);
+    }
+
+    .price-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .price-current {
+      font-size: 26px;
+      font-weight: 600;
+    }
+
+    .price-base {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .details-accordion {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .accordion-item {
+      background: rgba(15, 18, 32, 0.86);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .accordion-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      cursor: pointer;
+      gap: 12px;
+    }
+
+    .accordion-header h3 {
+      font-size: 15px;
+    }
+
+    .accordion-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .accordion-body {
+      padding: 0 16px 16px;
+      display: none;
+    }
+
+    .accordion-item.open .accordion-body {
+      display: block;
+    }
+
+    .description-scroll {
+      max-height: 560px;
+      min-height: 560px;
+      overflow: auto;
+      padding-right: 8px;
+      line-height: 1.45;
+      font-size: 14px;
+      color: #d5d9e6;
+    }
+
+    .accordion-body p + p {
+      margin-top: 12px;
+    }
+
+    .accordion-actions {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 16px 12px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(23, 26, 45, 0.8);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+
+    .search-bar input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      height: 28px;
+      outline: none;
+    }
+    .chip-input {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      min-height: 40px;
+      padding: 6px 8px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: rgba(17, 20, 35, 0.85);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(34, 38, 59, 0.9);
+      border: 1px solid var(--border);
+      font-size: 12px;
+    }
+
+    .chip.invalid {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .chip-input input {
+      flex: 1;
+      min-width: 160px;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      outline: none;
+      padding: 4px;
+      height: 28px;
+    }
+
+    .helper-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .pill-button {
+      height: 32px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(23, 26, 45, 0.65);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .pill-button:hover {
+      background: rgba(37, 42, 66, 0.8);
+      border-color: rgba(79, 125, 255, 0.4);
+    }
+
+    .primary-button {
+      background: var(--accent-blue);
+      border-color: transparent;
+      color: #fff;
+    }
+
+    .primary-button:hover {
+      background: var(--accent-blue-hover);
+    }
+
+    .success-button {
+      background: #1f8a50;
+      border-color: transparent;
+    }
+
+    .success-button:hover {
+      background: #27a15f;
+    }
+
+    .danger-button {
+      background: var(--danger);
+      border-color: transparent;
+    }
+
+    .suggestion-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 220px;
+      overflow: auto;
+    }
+
+    .suggestion-card {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      background: rgba(23, 26, 45, 0.75);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .suggestion-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .suggestion-path {
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .suggestion-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 10px;
+    }
+
+    .suggestion-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .icon-button {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(34, 38, 59, 0.85);
+      color: var(--text);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+
+    .status-card select {
+      width: 100%;
+      height: 36px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: rgba(23, 26, 45, 0.65);
+      color: var(--text);
+      padding: 0 12px;
+      outline: none;
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: rgba(23, 26, 45, 0.75);
+      cursor: pointer;
+    }
+
+    .toggle input {
+      display: none;
+    }
+
+    .toggle-switch {
+      width: 38px;
+      height: 20px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.15);
+      position: relative;
+      transition: background 0.2s ease;
+    }
+
+    .toggle-switch::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform 0.2s ease;
+    }
+
+    .toggle input:checked + .toggle-switch {
+      background: var(--accent-blue);
+    }
+
+    .toggle input:checked + .toggle-switch::after {
+      transform: translateX(18px);
+    }
+
+    .status-updated {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .comment-sheet {
+      position: fixed;
+      left: 50%;
+      bottom: calc(var(--bottom-bar-height) + 16px);
+      transform: translate(-50%, calc(100% + 24px));
+      width: clamp(420px, 40vw, 620px);
+      background: rgba(17, 19, 34, 0.95);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 28px 64px rgba(8, 11, 24, 0.45);
+      transition: transform 0.3s ease;
+      z-index: 60;
+      display: flex;
+      flex-direction: column;
+      max-height: 360px;
+      overflow: hidden;
+    }
+
+    .comment-sheet.open {
+      transform: translate(-50%, 0);
+    }
+
+    .comment-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .comment-body {
+      padding: 0 18px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    textarea.comment-input {
+      width: 100%;
+      min-height: 160px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: rgba(23, 26, 45, 0.75);
+      color: var(--text);
+      padding: 12px;
+      resize: none;
+    }
+
+    .comment-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .bottom-bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: var(--bottom-bar-height);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(17, 19, 34, 0.9);
+      border-top: 1px solid var(--border);
+      backdrop-filter: blur(14px);
+      z-index: 55;
+    }
+
+    .bottom-bar-inner {
+      width: 100%;
+      max-width: var(--max-width);
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .product-meta {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .product-meta h3 {
+      font-size: 15px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 380px;
+    }
+
+    .product-meta a {
+      color: var(--accent-blue);
+      text-decoration: none;
+    }
+
+    .product-meta small {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .bottom-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .bottom-actions .pill-button {
+      height: 34px;
+      padding: 0 16px;
+    }
+
+    .secondary-button {
+      background: rgba(34, 38, 59, 0.8);
+    }
+
+    .progress-indicator {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 0 12px;
+    }
+
+    .toast-stack {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 80;
+    }
+
+    .toast {
+      min-width: 240px;
+      max-width: 320px;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(23, 26, 45, 0.96);
+      box-shadow: 0 18px 36px rgba(8, 11, 24, 0.45);
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .toast.success {
+      border-color: rgba(68, 192, 134, 0.4);
+    }
+
+    .toast.error {
+      border-color: rgba(255, 107, 107, 0.4);
+    }
+
+    .toast button {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .list-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .filters-row {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 12px;
+      background: rgba(17, 19, 34, 0.92);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+    }
+
+    .filters-row .filter-full {
+      grid-column: span 2;
+    }
+
+    .filters-row label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .filters-row select,
+    .filters-row input {
+      height: 32px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: rgba(23, 26, 45, 0.7);
+      color: var(--text);
+      padding: 0 10px;
+      outline: none;
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .table-container {
+      flex: 1;
+      min-height: 0;
+      background: rgba(17, 19, 34, 0.92);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 0 0 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1100px;
+    }
+
+    thead {
+      background: rgba(23, 26, 45, 0.9);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    th,
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(31, 36, 55, 0.7);
+      text-align: left;
+      font-size: 13px;
+    }
+
+    tbody tr:hover {
+      background: rgba(34, 38, 59, 0.45);
+    }
+
+    td.readonly {
+      color: rgba(168, 175, 191, 0.6);
+      font-family: "JetBrains Mono", monospace;
+    }
+
+    .table-scroll {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+    }
+
+    .table-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .pagination {
+      padding: 10px 18px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .admin-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .metric-card {
+      background: rgba(17, 19, 34, 0.92);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .metric-value {
+      font-size: 28px;
+      font-weight: 600;
+    }
+
+    .sparkline {
+      height: 36px;
+      border-radius: 12px;
+      background: linear-gradient(90deg, rgba(79, 125, 255, 0.2), rgba(240, 108, 165, 0.2));
+    }
+
+    .dual-column {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      min-height: 0;
+      flex: 1;
+    }
+
+    .upload-area {
+      border: 1px dashed rgba(79, 125, 255, 0.4);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    .sync-status {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .sync-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .warning-banner {
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(240, 108, 165, 0.4);
+      background: rgba(240, 108, 165, 0.12);
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--accent-pink);
+    }
+
+    .users-table {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .users-table .table-scroll {
+      max-height: 260px;
+    }
+
+    .inline-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    @media (max-width: 1440px) {
+      .product-media {
+        grid-template-columns: 1fr;
+      }
+
+      .description-scroll {
+        min-height: 420px;
+        max-height: 420px;
+      }
+
+      .workspace-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      body {
+        overflow: auto;
+      }
+
+      .app-container {
+        height: auto;
+        padding-bottom: 120px;
+      }
+
+      .workspace-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .metric-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .dual-column {
+        grid-template-columns: 1fr;
+      }
+
+      .filters-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <span class="project-title">GGSEL · Разбор товаров</span>
+      <span class="project-subtitle">Рабочее место аналитика · MSK</span>
+    </div>
+    <div class="header-right">
+      <nav class="app-tabs">
+        <a href="#work" class="tab-link active" data-tab="work">Рабочая</a>
+        <a href="#list" class="tab-link" data-tab="list">Общий список</a>
+        <a href="#admin" class="tab-link" data-tab="admin">Админ-панель</a>
+      </nav>
+      <div class="user-pill">
+        <span class="user-avatar">WA</span>
+        <div class="user-name">worker@example.com</div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="app-container">
+      <section class="tab-panel active" id="work">
+        <div class="workspace-layout">
+          <div class="column">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Atomic Heart</div>
+                  <div class="helper-row">
+                    <span>GGSEL · #184920</span>
+                    <span>Продажи: 4.8 ★</span>
+                    <span>Продавец: Digital Goods</span>
+                  </div>
+                </div>
+                <button class="pill-button secondary-button" data-action="open-gallery">Открыть галерею</button>
+              </div>
+              <div class="product-media">
+                <div class="cover">
+                  <img src="https://images.unsplash.com/photo-1542751110-97427bbecf20?auto=format&fit=crop&w=1200&q=80" alt="Atomic Heart" />
+                </div>
+                <div class="thumb-strip">
+                  <div class="price-block">
+                    <div class="price-current">1 899 ₽</div>
+                    <div class="price-base">Базовая цена: 2 499 ₽</div>
+                  </div>
+                  <div class="thumb-list">
+                    <img src="https://images.unsplash.com/photo-1528825871115-3581a5387919?auto=format&fit=crop&w=120&q=60" alt="thumb" class="active" />
+                    <img src="https://images.unsplash.com/photo-1524678606370-a47ad25cb82a?auto=format&fit=crop&w=120&q=60" alt="thumb" />
+                    <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=120&q=60" alt="thumb" />
+                    <img src="https://images.unsplash.com/photo-1526404428533-96e7d1d6f3c0?auto=format&fit=crop&w=120&q=60" alt="thumb" />
+                  </div>
+                  <div class="helper-row">
+                    <span>Ссылка продавца</span>
+                    <a href="https://ggsel.net" target="_blank">ggsel.net</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Детали товара</div>
+                <div class="helper-row">
+                  <button class="pill-button" data-action="collapse-all">Свернуть всё</button>
+                  <button class="pill-button" data-action="expand-all">Развернуть всё</button>
+                </div>
+              </div>
+              <div class="search-bar">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="m21 21-4.35-4.35"/><circle cx="11" cy="11" r="7"/></svg>
+                <input type="text" placeholder="Поиск: регион, аккаунт, ключ, DLC…" id="description-search" />
+              </div>
+              <div class="details-accordion">
+                <div class="accordion-item open" data-minheight>
+                  <div class="accordion-header" data-accordion>
+                    <h3>Описание</h3>
+                    <span class="accordion-meta">9 420 символов</span>
+                  </div>
+                  <div class="accordion-body">
+                    <div class="description-scroll" id="description-text">
+                      <p>Погрузитесь в альтернативную вселенную СССР, где технологии и роботы стали неотъемлемой частью жизни. Atomic Heart предлагает динамичный экшен с уникальной системой навыков, крафтом и головоломками.</p>
+                      <p>Регион активации: Россия · Украина · Беларусь. Языки: русский, английский, китайский. В комплект входит набор «Labour & Science».</p>
+                      <p>Ключевые слова: подписка, кооператив, одиночная кампания, RTX, сюжет.</p>
+                      <p>Покупатель получает ключ Steam. Инструкция по активации прилагается.</p>
+                      <p>При возникновении вопросов — служба поддержки отвечает в течение 15 минут.</p>
+                    </div>
+                    <div class="accordion-actions">
+                      <span>Подсветка фраз: 5 совпадений</span>
+                      <button class="pill-button" data-action="copy-description">Скопировать фрагмент</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="accordion-item" data-minheight>
+                  <div class="accordion-header" data-accordion>
+                    <h3>Доп. информация</h3>
+                    <span class="accordion-meta">Актуализировано 02.10</span>
+                  </div>
+                  <div class="accordion-body">
+                    <div class="description-scroll">
+                      <p>В комплект включены бонусные материалы: артбук в PDF и цифровой саундтрек.</p>
+                      <p>Аккаунты продавца прошли ручную проверку 24.09.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="column">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">PathBuilder</div>
+                  <div class="helper-row"><span>Двойной пробел → «&gt;»</span></div>
+                </div>
+                <button class="pill-button" data-action="clear-path">Очистить</button>
+              </div>
+              <div class="chip-input" id="path-builder">
+                <span class="chip" data-index="0">Игры</span>
+                <span class="chip" data-index="1">Atomic Heart</span>
+                <span class="chip" data-index="2">Ключи</span>
+                <input type="text" id="path-input" placeholder="Добавить сегмент" value="Steam" />
+              </div>
+              <div class="helper-row">
+                <span>Тип товара: Аккаунты · Ключи · Покупка на ваш аккаунт · …</span>
+                <span>Платформа: Steam · Ubisoft Connect · PlayStation · …</span>
+              </div>
+              <div class="helper-row">
+                <button class="pill-button" data-action="paste-suggestion">Вставить из подсказок</button>
+                <button class="pill-button" data-action="copy-path">Скопировать путь</button>
+              </div>
+              <small class="helper-row" id="path-error"></small>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Предложенные пути</div>
+                <span class="helper-row">Top-5 · Local + External</span>
+              </div>
+              <div class="suggestion-list" id="suggestion-list"></div>
+              <div class="helper-row">Empty-state → загрузите подсказки через админку</div>
+            </div>
+
+            <div class="card status-card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Статус переноса</div>
+                  <span class="helper-row">Обновлено: <span id="status-updated">—</span></span>
+                </div>
+              </div>
+              <select id="status-select">
+                <option value="">Выберите статус</option>
+                <option>Да</option>
+                <option>Нет</option>
+                <option>Иероглифы</option>
+                <option>Нет в наличии</option>
+                <option>Уже перенесен</option>
+                <option>Перенос не нужен</option>
+              </select>
+              <label class="toggle">
+                <span>Завершил карточку</span>
+                <input type="checkbox" id="complete-toggle" />
+                <span class="toggle-switch"></span>
+              </label>
+              <div class="status-updated">Без валидного пути и статуса завершение недоступно.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="tab-panel" id="list">
+        <div class="list-layout">
+          <div class="filters-row">
+            <label>
+              Исполнитель
+              <select>
+                <option>Все</option>
+                <option>worker@example.com</option>
+                <option>askelwhite22@gmail.com</option>
+              </select>
+            </label>
+            <label>
+              Статус переноса
+              <select>
+                <option>Все</option>
+                <option>Да</option>
+                <option>Нет</option>
+              </select>
+            </label>
+            <label>
+              Крошки
+              <select>
+                <option>Любые</option>
+                <option>Есть</option>
+                <option>Нет</option>
+              </select>
+            </label>
+            <label>
+              Готовность
+              <select>
+                <option>Все</option>
+                <option>Завершённые</option>
+                <option>В работе</option>
+              </select>
+            </label>
+            <label>
+              Диапазон даты (E)
+              <input type="date" />
+            </label>
+            <label>
+              Диапазон даты (H)
+              <input type="date" />
+            </label>
+            <label class="filter-full">
+              Поиск по URL / крошкам / комментарию
+              <input type="search" placeholder="Введите значение" />
+            </label>
+            <div class="filter-actions">
+              <button class="pill-button">Сброс</button>
+              <button class="pill-button primary-button">Применить</button>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>A URL</th>
+                    <th>B Исполнитель</th>
+                    <th>C Статус</th>
+                    <th>D Изменил</th>
+                    <th>E Изменено</th>
+                    <th>F Крошки</th>
+                    <th>G Автор</th>
+                    <th>H Обновлено</th>
+                    <th>I Приоритет</th>
+                    <th>J Завершил</th>
+                    <th>K Когда</th>
+                    <th>L Флаг</th>
+                    <th>M Комментарий</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="list-body"></tbody>
+              </table>
+            </div>
+            <div class="pagination">
+              <div>Показано 20 из 240</div>
+              <div>
+                <button class="pill-button">Предыдущая</button>
+                <button class="pill-button">Следующая</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="admin">
+        <div class="admin-layout">
+          <div class="metric-grid" id="metric-grid"></div>
+
+          <div class="dual-column">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Загрузка подсказок</div>
+                  <span class="helper-row">CSV / JSON · path, score, source, meta</span>
+                </div>
+                <button class="pill-button">Очистить все</button>
+              </div>
+              <div class="upload-area">
+                <strong>Перетащите файл</strong>
+                <span>или</span>
+                <button class="pill-button primary-button">Выбрать файл</button>
+                <small>Макс. 5 MB · UTF-8</small>
+              </div>
+              <div class="table-scroll" style="max-height: 180px;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Путь</th>
+                      <th>Score</th>
+                      <th>Источник</th>
+                      <th>Дата</th>
+                    </tr>
+                  </thead>
+                  <tbody id="suggestion-table"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Синхронизация</div>
+                  <span class="helper-row">Google Sheets · последняя запись побеждает</span>
+                </div>
+                <button class="pill-button primary-button" data-action="run-sync">Синхронизировать сейчас</button>
+              </div>
+              <div class="sync-status">
+                <div class="toggle">
+                  <span>Автосинк каждые 30 мин</span>
+                  <input type="checkbox" id="auto-sync-toggle" checked />
+                  <span class="toggle-switch"></span>
+                </div>
+                <div class="sync-row">
+                  <div>
+                    <div>Последний pull: <strong id="last-pull">—</strong></div>
+                    <div>Последний push: <strong id="last-push">—</strong></div>
+                  </div>
+                  <div class="helper-row">Статус: <span id="sync-status">OK</span></div>
+                </div>
+                <div class="warning-banner" id="conflict-banner" hidden>
+                  Обнаружены конфликты по updated_at. Проверьте последние изменения перед пушем.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card users-table">
+            <div class="card-header">
+              <div class="card-title">Пользователи</div>
+              <div class="inline-actions">
+                <button class="pill-button primary-button">Добавить</button>
+                <button class="pill-button">Импорт</button>
+              </div>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Роль</th>
+                    <th>Имя</th>
+                    <th>Статус</th>
+                    <th>Создан</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="users-table"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div class="comment-sheet" id="comment-sheet">
+    <div class="comment-header">
+      <h3>Комментарий к товару</h3>
+      <button class="pill-button" data-action="close-comment">Свернуть</button>
+    </div>
+    <div class="comment-body">
+      <textarea class="comment-input" id="comment-input" maxlength="500" placeholder="Введите комментарий…"></textarea>
+      <div class="comment-actions">
+        <span><span id="comment-count">0</span> / 500</span>
+        <button class="pill-button primary-button" data-action="save-comment">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="bottom-bar-inner">
+      <div class="product-meta">
+        <h3 title="Atomic Heart — лицензия Steam">Atomic Heart — лицензия Steam</h3>
+        <small>2 499 ₽</small>
+        <a href="https://ggsel.net/catalog/product/123456" target="_blank">ggsel.net/catalog/product/123456</a>
+        <small>Продавец: Digital Goods · ★4.8</small>
+      </div>
+      <div class="bottom-actions">
+        <button class="pill-button secondary-button" data-action="prev">Предыдущий</button>
+        <button class="pill-button secondary-button" data-action="next">Следующий</button>
+        <span class="progress-indicator">12 из 128</span>
+        <button class="pill-button" data-action="copy-url">Копировать URL</button>
+        <button class="pill-button" data-action="open-product">Открыть карточку</button>
+        <button class="pill-button" data-action="toggle-comment">Комментарий</button>
+        <button class="pill-button primary-button" data-action="save">Сохранить</button>
+        <button class="pill-button success-button" data-action="complete" disabled>Завершил</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-stack" id="toast-stack"></div>
+
+  <script>
+    const tabs = document.querySelectorAll('.tab-link');
+    const panels = document.querySelectorAll('.tab-panel');
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', (event) => {
+        event.preventDefault();
+        const target = tab.dataset.tab;
+        tabs.forEach((t) => t.classList.toggle('active', t === tab));
+        panels.forEach((panel) => panel.classList.toggle('active', panel.id === target));
+      });
+    });
+
+    const toastStack = document.getElementById('toast-stack');
+    function showToast(message, type = 'success', timeout = 3000) {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<span>${message}</span><button aria-label="Закрыть">×</button>`;
+      toast.querySelector('button').addEventListener('click', () => toast.remove());
+      toastStack.appendChild(toast);
+      setTimeout(() => toast.remove(), timeout);
+    }
+
+    document.querySelectorAll('[data-accordion]').forEach((header) => {
+      header.addEventListener('click', () => {
+        const item = header.closest('.accordion-item');
+        item.classList.toggle('open');
+        adjustDescriptionHeight();
+      });
+    });
+
+    document.querySelector('[data-action="collapse-all"]').addEventListener('click', () => {
+      document.querySelectorAll('.accordion-item').forEach((item) => item.classList.remove('open'));
+      adjustDescriptionHeight();
+    });
+
+    document.querySelector('[data-action="expand-all"]').addEventListener('click', () => {
+      document.querySelectorAll('.accordion-item').forEach((item) => item.classList.add('open'));
+      adjustDescriptionHeight();
+    });
+
+    function adjustDescriptionHeight() {
+      document.querySelectorAll('.accordion-item[data-minheight] .description-scroll').forEach((el) => {
+        if (window.innerHeight < 980) {
+          el.style.minHeight = '420px';
+          el.style.maxHeight = '420px';
+        } else {
+          el.style.minHeight = '560px';
+          el.style.maxHeight = '560px';
+        }
+      });
+    }
+    adjustDescriptionHeight();
+    window.addEventListener('resize', adjustDescriptionHeight);
+
+    const allowedTypes = [
+      'Аккаунты',
+      'Ключи',
+      'Покупка на ваш аккаунт',
+      'Аренда аккаунтов',
+      'Оффлайн аккаунты',
+      'Услуги активации',
+      'DLC',
+      'Скины',
+      'Предметы',
+      'Валюта',
+      'Боевой пропуск',
+      'Наборы'
+    ];
+    const allowedPlatforms = [
+      'Battle.net',
+      'EA app',
+      'Epic Games Store',
+      'GOG',
+      'Nintendo Switch',
+      'PlayStation',
+      'Steam',
+      'Ubisoft Connect',
+      'Xbox / Microsoft Store'
+    ];
+    const allowedEditions = ['Standard Edition', 'Deluxe Edition'];
+
+    const pathBuilder = document.getElementById('path-builder');
+    const pathInput = document.getElementById('path-input');
+    const pathError = document.getElementById('path-error');
+    const completeButton = document.querySelector('[data-action="complete"]');
+    const statusSelect = document.getElementById('status-select');
+    const completeToggle = document.getElementById('complete-toggle');
+
+    pathInput.addEventListener('keydown', (event) => {
+      if (event.key === ' ' && pathInput.value.endsWith(' ')) {
+        event.preventDefault();
+        commitSegment();
+      } else if (event.key === 'Enter') {
+        event.preventDefault();
+        commitSegment();
+      }
+    });
+
+    pathInput.addEventListener('blur', commitSegment);
+
+    function commitSegment() {
+      const value = pathInput.value.trim();
+      if (!value) return;
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = value;
+      pathBuilder.insertBefore(chip, pathInput);
+      pathInput.value = '';
+      validatePath();
+    }
+
+    function clearPath() {
+      Array.from(pathBuilder.querySelectorAll('.chip')).forEach((chip, index) => {
+        if (index > 1) chip.remove();
+      });
+      pathInput.value = '';
+      validatePath();
+    }
+
+    document.querySelector('[data-action="clear-path"]').addEventListener('click', () => {
+      clearPath();
+      showToast('Путь очищен', 'success');
+    });
+
+    function getCurrentSegments() {
+      return Array.from(pathBuilder.querySelectorAll('.chip')).map((chip) => chip.textContent.trim()).concat(pathInput.value.trim() ? [pathInput.value.trim()] : []);
+    }
+
+    function validatePath() {
+      const chips = Array.from(pathBuilder.querySelectorAll('.chip'));
+      chips.forEach((chip) => chip.classList.remove('invalid'));
+      pathError.textContent = '';
+      let error = '';
+      const segments = getCurrentSegments();
+      if (segments.length < 2) {
+        error = 'Минимум два сегмента';
+      }
+      if (segments[2]) {
+        const type = segments[2];
+        if (!allowedTypes.includes(type)) {
+          chips[2]?.classList.add('invalid');
+          error = 'Тип товара вне справочника';
+        }
+      }
+      if (segments[3]) {
+        const platform = segments[3];
+        if (!allowedPlatforms.includes(platform)) {
+          chips[3]?.classList.add('invalid');
+          error = 'Платформа вне справочника';
+        }
+      }
+      if (segments[4]) {
+        const edition = segments[4];
+        if (!allowedEditions.includes(edition)) {
+          chips[4]?.classList.add('invalid');
+          error = 'Издание вне справочника';
+        }
+      }
+      pathError.textContent = error;
+      updateCompleteState();
+    }
+
+    validatePath();
+
+    const suggestions = [
+      { path: 'Игры > Atomic Heart > Ключи > Steam', score: 0.94, source: 'uploaded' },
+      { path: 'Игры > Atomic Heart > Покупка на ваш аккаунт > Steam', score: 0.85, source: 'external' },
+      { path: 'Игры > Atomic Heart > Ключи > Xbox / Microsoft Store', score: 0.81, source: 'uploaded' },
+      { path: 'Игры > Atomic Heart > DLC', score: 0.63, source: 'external' },
+      { path: 'Игры > Atomic Heart > Наборы', score: 0.58, source: 'uploaded' }
+    ];
+
+    const suggestionList = document.getElementById('suggestion-list');
+    suggestions.forEach((item) => {
+      const card = document.createElement('div');
+      card.className = 'suggestion-card';
+      card.innerHTML = `
+        <div class="suggestion-top">
+          <div class="suggestion-path">${item.path}</div>
+          <div class="suggestion-actions">
+            <button class="icon-button" title="Вставить">⤵</button>
+            <button class="icon-button" title="Скопировать">⧉</button>
+          </div>
+        </div>
+        <div class="suggestion-meta">${item.source} · score ${item.score}</div>
+      `;
+      const [insertBtn, copyBtn] = card.querySelectorAll('button');
+      insertBtn.addEventListener('click', () => applySuggestion(item.path));
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(item.path);
+        showToast('Путь скопирован', 'success');
+      });
+      suggestionList.appendChild(card);
+    });
+
+    function applySuggestion(path) {
+      clearPath();
+      const segments = path.split('>').map((segment) => segment.trim());
+      segments.forEach((segment, index) => {
+        if (index < 2) {
+          const chip = pathBuilder.querySelectorAll('.chip')[index];
+          if (chip) chip.textContent = segment;
+        } else {
+          const chip = document.createElement('span');
+          chip.className = 'chip';
+          chip.textContent = segment;
+          pathBuilder.insertBefore(chip, pathInput);
+        }
+      });
+      showToast('Путь вставлен', 'success');
+      validatePath();
+    }
+
+    document.querySelector('[data-action="paste-suggestion"]').addEventListener('click', () => {
+      if (suggestions[0]) applySuggestion(suggestions[0].path);
+    });
+
+    document.querySelector('[data-action="copy-path"]').addEventListener('click', () => {
+      const path = getCurrentSegments().join(' > ');
+      navigator.clipboard.writeText(path);
+      showToast('Путь скопирован', 'success');
+    });
+    const commentSheet = document.getElementById('comment-sheet');
+    const commentToggleButtons = document.querySelectorAll('[data-action="toggle-comment"]');
+    const commentClose = document.querySelector('[data-action="close-comment"]');
+    const commentInput = document.getElementById('comment-input');
+    const commentCount = document.getElementById('comment-count');
+
+    commentToggleButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        commentSheet.classList.toggle('open');
+        commentInput.focus();
+      });
+    });
+
+    commentClose.addEventListener('click', () => commentSheet.classList.remove('open'));
+
+    commentInput.addEventListener('input', () => {
+      commentCount.textContent = commentInput.value.length;
+    });
+
+    document.querySelector('[data-action="save-comment"]').addEventListener('click', () => {
+      showToast('Комментарий сохранён', 'success');
+      commentSheet.classList.remove('open');
+    });
+
+    document.querySelector('[data-action="save"]').addEventListener('click', () => {
+      showToast('Изменения сохранены', 'success');
+    });
+
+    document.querySelector('[data-action="complete"]').addEventListener('click', () => {
+      if (completeButton.disabled) return;
+      showToast('Карточка завершена', 'success');
+      completeToggle.checked = true;
+    });
+
+    document.querySelector('[data-action="copy-url"]').addEventListener('click', () => {
+      navigator.clipboard.writeText('https://ggsel.net/catalog/product/123456');
+      showToast('URL скопирован', 'success');
+    });
+
+    document.querySelector('[data-action="prev"]').addEventListener('click', () => showToast('Переключено на предыдущий товар', 'success'));
+    document.querySelector('[data-action="next"]').addEventListener('click', () => showToast('Переключено на следующий товар', 'success'));
+
+    statusSelect.addEventListener('change', updateCompleteState);
+    completeToggle.addEventListener('change', () => {
+      if (completeToggle.checked && completeButton.disabled) {
+        completeToggle.checked = false;
+        showToast('Укажите статус и корректные крошки', 'error');
+      }
+    });
+
+    function getSegmentsForValidation() {
+      const chips = Array.from(pathBuilder.querySelectorAll('.chip')).map((chip) => chip.textContent.trim());
+      const pending = pathInput.value.trim();
+      return pending ? chips.concat(pending) : chips;
+    }
+
+    function hasValidBreadcrumbs() {
+      const segments = getSegmentsForValidation();
+      if (segments.length < 2) return false;
+      if (pathError.textContent) return false;
+      return true;
+    }
+
+    function updateCompleteState() {
+      const isValid = statusSelect.value && hasValidBreadcrumbs();
+      completeButton.disabled = !isValid;
+      document.getElementById('status-updated').textContent = isValid ? new Date().toLocaleString('ru-RU') : '—';
+    }
+
+    updateCompleteState();
+
+    const listBody = document.getElementById('list-body');
+    const rows = Array.from({ length: 20 }).map((_, index) => ({
+      url: `https://ggsel.net/catalog/product/12${300 + index}`,
+      assignee: index % 2 ? 'worker@example.com' : '—',
+      status: index % 3 === 0 ? 'Да' : 'Нет',
+      statusBy: 'worker@example.com',
+      statusAt: `2024-10-0${(index % 9) + 1} 12:40`,
+      breadcrumbs: 'Игры > Atomic Heart > Ключи > Steam',
+      breadcrumbsBy: 'worker@example.com',
+      breadcrumbsAt: `2024-10-0${(index % 9) + 1} 13:10`,
+      priority: 'Средний',
+      completedBy: index % 2 ? 'worker@example.com' : '—',
+      completedAt: index % 2 ? `2024-10-0${(index % 9) + 1} 13:40` : '—',
+      flag: 'moved',
+      comment: index % 2 ? 'Ждать подтверждения от продавца' : '—'
+    }));
+
+    rows.forEach((row) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><a href="${row.url}" target="_blank">${row.url}</a></td>
+        <td>${row.assignee}</td>
+        <td>${row.status}</td>
+        <td>${row.statusBy}</td>
+        <td>${row.statusAt}</td>
+        <td>${row.breadcrumbs}</td>
+        <td>${row.breadcrumbsBy}</td>
+        <td>${row.breadcrumbsAt}</td>
+        <td>${row.priority}</td>
+        <td>${row.completedBy}</td>
+        <td>${row.completedAt}</td>
+        <td class="readonly">${row.flag}</td>
+        <td>${row.comment}</td>
+        <td class="table-actions">
+          <button class="pill-button" data-action="take">Взять</button>
+          <button class="pill-button" data-action="open">Открыть</button>
+        </td>
+      `;
+      listBody.appendChild(tr);
+    });
+
+    const metricGrid = document.getElementById('metric-grid');
+    const metrics = [
+      { label: 'Завершено сегодня', value: '18', trend: '+4 vs вчера' },
+      { label: 'Всего завершено', value: '432', trend: '+12 за неделю' },
+      { label: 'Активные аналитики', value: '8', trend: 'в сети сейчас' },
+      { label: 'Среднее время', value: '14 мин', trend: 'на карточку' }
+    ];
+    metrics.forEach((metric) => {
+      const card = document.createElement('div');
+      card.className = 'metric-card';
+      card.innerHTML = `
+        <span>${metric.label}</span>
+        <span class="metric-value">${metric.value}</span>
+        <span class="helper-row">${metric.trend}</span>
+        <div class="sparkline"></div>
+      `;
+      metricGrid.appendChild(card);
+    });
+
+    const suggestionTable = document.getElementById('suggestion-table');
+    suggestions.forEach((item) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item.path}</td>
+        <td>${item.score}</td>
+        <td>${item.source}</td>
+        <td>${new Date().toLocaleDateString('ru-RU')}</td>
+      `;
+      suggestionTable.appendChild(tr);
+    });
+
+    const usersTable = document.getElementById('users-table');
+    const users = [
+      { email: 'admin@example.com', role: 'admin', name: 'Admin', status: 'Активен', created: '12.09.2024' },
+      { email: 'worker@example.com', role: 'worker', name: 'Worker', status: 'Активен', created: '01.08.2024' },
+      { email: 'askelwhite22@gmail.com', role: 'admin', name: 'Askel', status: 'Активен', created: '14.07.2024' }
+    ];
+    users.forEach((user) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${user.email}</td>
+        <td>${user.role}</td>
+        <td>${user.name}</td>
+        <td>${user.status}</td>
+        <td>${user.created}</td>
+        <td class="table-actions">
+          <button class="pill-button">Редактировать</button>
+          <button class="pill-button">Удалить</button>
+        </td>
+      `;
+      usersTable.appendChild(tr);
+    });
+
+    document.querySelector('[data-action="run-sync"]').addEventListener('click', () => {
+      showToast('Синхронизация запущена', 'success');
+      document.getElementById('last-pull').textContent = new Date().toLocaleString('ru-RU');
+      document.getElementById('last-push').textContent = new Date().toLocaleString('ru-RU');
+      document.getElementById('sync-status').textContent = 'OK';
+      document.getElementById('conflict-banner').hidden = Math.random() > 0.5;
+    });
+
+    document.getElementById('auto-sync-toggle').addEventListener('change', (event) => {
+      showToast(event.target.checked ? 'Автосинк включен' : 'Автосинк выключен', 'success');
+    });
+  </script>
+</body>
+</html>
