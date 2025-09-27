@@ -1,0 +1,1668 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GGSEL Разбор товаров</title>
+    <link rel="stylesheet" href="{% static 'frontend/theme.css' %}" />
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        padding-bottom: 120px;
+      }
+
+      .app-header {
+        position: sticky;
+        top: 0;
+        z-index: 80;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 var(--gap-5);
+        height: 72px;
+        background: rgba(18, 21, 33, 0.92);
+        border-bottom: 1px solid var(--border);
+        backdrop-filter: blur(22px);
+        box-shadow: 0 10px 30px rgba(5, 8, 14, 0.45);
+      }
+
+      .app-brand {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .app-title {
+        font-size: 18px;
+        font-weight: 600;
+      }
+
+      .app-subtitle {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      .app-nav {
+        display: flex;
+        align-items: center;
+        gap: var(--gap-2);
+        height: 44px;
+        padding: 4px;
+        border-radius: 999px;
+        background: rgba(21, 25, 36, 0.85);
+        border: 1px solid rgba(45, 54, 74, 0.65);
+      }
+
+      .app-nav__tab {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 999px;
+        padding: 0 var(--gap-3);
+        height: 34px;
+        font-size: 14px;
+        color: var(--text-muted);
+        transition: background 0.18s ease, color 0.18s ease;
+        border: none;
+        background: transparent;
+      }
+
+      .app-nav__tab:hover,
+      .app-nav__tab:focus-visible {
+        color: var(--text);
+      }
+
+      .app-nav__tab.is-active {
+        background: rgba(59, 130, 246, 0.18);
+        color: var(--text);
+        box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.35);
+      }
+
+      .app-nav__dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--blue);
+        opacity: 0;
+        transition: opacity 0.18s ease, transform 0.18s ease;
+      }
+
+      .app-nav__tab.is-active .app-nav__dot {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .user-chip {
+        display: flex;
+        align-items: center;
+        gap: var(--gap-2);
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: rgba(32, 36, 50, 0.85);
+        border: 1px solid rgba(50, 58, 78, 0.85);
+      }
+
+      .user-chip__avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--blue);
+        color: #09111f;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+      }
+
+      .app-content {
+        flex: 1;
+        width: min(1680px, 100%);
+        margin: 0 auto;
+        padding: var(--gap-5) var(--gap-4) 160px;
+        display: grid;
+        gap: var(--gap-5);
+      }
+
+      [data-screen] {
+        display: none;
+      }
+
+      [data-screen].is-active {
+        display: block;
+      }
+
+      .workspace-grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: var(--gap-4);
+      }
+
+      .workspace-grid__main {
+        grid-column: span 8;
+        display: grid;
+        gap: var(--gap-4);
+        align-content: start;
+      }
+
+      .workspace-grid__aside {
+        grid-column: span 4;
+        display: grid;
+        gap: var(--gap-4);
+        position: sticky;
+        top: 96px;
+        align-self: start;
+      }
+
+      .media-frame {
+        position: relative;
+        border-radius: var(--radius-lg);
+        border: 1px solid rgba(59, 130, 246, 0.45);
+        background: rgba(19, 22, 33, 0.9);
+        overflow: hidden;
+      }
+
+      .media-frame::before {
+        content: "";
+        display: block;
+        padding-top: 56.25%;
+      }
+
+      .media-frame img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: rgba(9, 11, 17, 0.65);
+        padding: var(--gap-3);
+      }
+
+      .media-frame__overlay {
+        position: absolute;
+        top: var(--gap-2);
+        right: var(--gap-2);
+        display: none;
+      }
+
+      .media-frame:hover .media-frame__overlay,
+      .media-frame:focus-within .media-frame__overlay {
+        display: block;
+      }
+
+      .product-card {
+        display: grid;
+        gap: var(--gap-3);
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        padding: var(--gap-4);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .product-header {
+        display: flex;
+        flex-direction: column;
+        gap: var(--gap-2);
+      }
+
+      .product-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--gap-2);
+      }
+
+      .product-price-stack {
+        display: grid;
+        gap: 6px;
+        align-content: start;
+      }
+
+      .price-row {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .price-now {
+        font-size: 28px;
+        font-weight: 600;
+      }
+
+      .price-currency {
+        font-size: 16px;
+        align-self: flex-start;
+      }
+
+      .price-base {
+        font-size: 14px;
+        color: var(--text-muted);
+        text-decoration: line-through;
+      }
+
+      .badge-sale {
+        background: rgba(244, 63, 94, 0.2);
+        color: var(--rose);
+        border: 1px solid rgba(244, 63, 94, 0.35);
+      }
+      .thumbnail-strip {
+        display: flex;
+        gap: var(--gap-2);
+      }
+
+      .thumbnail {
+        width: 58px;
+        height: 58px;
+        border-radius: var(--radius-sm);
+        border: 2px solid transparent;
+        overflow: hidden;
+        background: rgba(23, 26, 36, 0.9);
+      }
+
+      .thumbnail.is-active {
+        border-color: var(--blue);
+      }
+
+      .thumbnail img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .details-panel {
+        display: grid;
+        gap: var(--gap-3);
+      }
+
+      .details-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--gap-3);
+      }
+
+      .details-toolbar__actions {
+        display: flex;
+        gap: var(--gap-2);
+      }
+
+      .accordion {
+        display: grid;
+        gap: var(--gap-3);
+      }
+
+      .accordion-item {
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        overflow: hidden;
+      }
+
+      .accordion-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--gap-3) var(--gap-4);
+        cursor: pointer;
+        gap: var(--gap-3);
+      }
+
+      .accordion-header__meta {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      .accordion-body {
+        display: none;
+        padding: 0 var(--gap-4) var(--gap-4);
+      }
+
+      .accordion-item.is-open .accordion-body {
+        display: block;
+      }
+
+      .description-scroll {
+        max-height: 560px;
+        min-height: 560px;
+        overflow-y: auto;
+        padding-right: var(--gap-2);
+        font-size: 14px;
+        line-height: 1.6;
+        color: #d5d9e6;
+      }
+
+      .search-field {
+        display: flex;
+        align-items: center;
+        gap: var(--gap-2);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        background: rgba(17, 22, 33, 0.85);
+        padding: 0 var(--gap-3);
+        height: 40px;
+      }
+
+      .search-field input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: inherit;
+      }
+
+      .path-builder {
+        display: grid;
+        gap: var(--gap-2);
+      }
+
+      .path-field {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--gap-2);
+        padding: 8px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        background: rgba(17, 21, 32, 0.95);
+      }
+
+      .path-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(58, 70, 96, 0.65);
+        background: rgba(41, 52, 74, 0.9);
+        font-size: 13px;
+        cursor: grab;
+      }
+
+      .path-chip.dragging {
+        opacity: 0.45;
+      }
+
+      .path-chip__remove {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: none;
+        display: grid;
+        place-items: center;
+        background: rgba(12, 16, 26, 0.8);
+        color: var(--text-muted);
+        font-size: 12px;
+      }
+
+      .path-chip--invalid {
+        border-color: var(--rose);
+        color: var(--rose);
+      }
+
+      .path-input-wrapper {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 160px;
+        flex: 1;
+      }
+
+      .path-input-wrapper input {
+        border: none;
+        background: transparent;
+        color: inherit;
+        min-width: 140px;
+      }
+
+      .path-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--gap-2);
+      }
+
+      .path-actions__group {
+        display: flex;
+        gap: var(--gap-2);
+      }
+
+      .helper-text {
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+
+      .helper-text--error {
+        color: var(--rose);
+      }
+
+      .suggestion-list {
+        display: grid;
+        gap: var(--gap-2);
+      }
+
+      .suggestion-item {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: var(--gap-2);
+        align-items: center;
+        padding: var(--gap-3);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+      }
+
+      .suggestion-item__rank {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-muted);
+      }
+
+      .suggestion-item__path {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .suggestion-item__meta {
+        display: flex;
+        gap: var(--gap-2);
+        flex-wrap: wrap;
+      }
+
+      .suggestion-item__actions {
+        display: flex;
+        gap: var(--gap-2);
+      }
+
+      .status-segmented {
+        display: grid;
+        gap: var(--gap-2);
+      }
+
+      .segment-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--gap-2);
+      }
+
+      .segment {
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: rgba(18, 22, 32, 0.9);
+        font-size: 13px;
+        color: var(--text-muted);
+        transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+      }
+
+      .segment.is-active {
+        background: rgba(59, 130, 246, 0.18);
+        color: var(--text);
+        border-color: rgba(59, 130, 246, 0.4);
+      }
+
+      .comment-sheet {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: -400px;
+        width: min(720px, 92vw);
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        box-shadow: var(--shadow);
+        padding: var(--gap-4);
+        display: grid;
+        gap: var(--gap-3);
+        z-index: 120;
+        transition: bottom 0.28s ease;
+      }
+
+      .comment-sheet.is-open {
+        bottom: 90px;
+      }
+
+      .comment-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--gap-2);
+      }
+
+      .comment-preview {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      .toolbar-progress {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 4px;
+        width: 100%;
+        background: rgba(25, 34, 54, 0.85);
+      }
+
+      .toolbar-progress__bar {
+        height: 100%;
+        background: var(--blue);
+        transition: width 0.2s ease;
+      }
+
+      .workspace-toolbar {
+        padding: var(--gap-3) var(--gap-5) calc(var(--gap-3) + env(safe-area-inset-bottom));
+      }
+
+      .workspace-toolbar__inner {
+        display: grid;
+        grid-template-columns: 1fr 1.5fr 1fr;
+        gap: var(--gap-3);
+        align-items: center;
+      }
+
+      .toolbar-zone {
+        display: flex;
+        align-items: center;
+        gap: var(--gap-2);
+        flex-wrap: wrap;
+      }
+
+      .toolbar-zone--center {
+        justify-content: center;
+      }
+
+      .toolbar-zone--end {
+        justify-content: flex-end;
+        align-items: flex-end;
+        flex-direction: column;
+      }
+
+      .toolbar-input {
+        width: 100%;
+      }
+
+      .toolbar-hint {
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+
+      .toolbar-hint--error {
+        color: var(--rose);
+      }
+
+      .table-card {
+        padding: var(--gap-4);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        display: grid;
+        gap: var(--gap-3);
+      }
+
+      .table-wrapper {
+        overflow: auto;
+        max-height: calc(100vh - 280px);
+      }
+
+      .table-actions {
+        display: flex;
+        gap: var(--gap-2);
+        flex-wrap: wrap;
+      }
+
+      .readonly {
+        color: var(--text-muted);
+      }
+
+      .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--gap-2);
+      }
+
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: var(--gap-3);
+      }
+
+      .metric-card {
+        padding: var(--gap-3);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        display: grid;
+        gap: 4px;
+      }
+
+      .metric-value {
+        font-size: 24px;
+        font-weight: 600;
+      }
+
+      .admin-grid {
+        display: grid;
+        gap: var(--gap-3);
+      }
+
+      .sync-banner {
+        display: flex;
+        align-items: center;
+        gap: var(--gap-2);
+        padding: var(--gap-2) var(--gap-3);
+        border-radius: var(--radius-sm);
+        border: 1px solid rgba(244, 160, 62, 0.45);
+        background: rgba(110, 69, 10, 0.16);
+        color: #fbbf24;
+      }
+
+      .empty-state {
+        border-radius: var(--radius-lg);
+        border: 1px dashed var(--border);
+        padding: var(--gap-4);
+        text-align: center;
+        color: var(--text-muted);
+        display: grid;
+        gap: var(--gap-2);
+        justify-items: center;
+      }
+      @media (max-width: 1440px) {
+        .workspace-grid__main {
+          grid-column: span 9;
+        }
+
+        .workspace-grid__aside {
+          grid-column: span 3;
+        }
+
+        .description-scroll {
+          min-height: 480px;
+          max-height: 480px;
+        }
+      }
+
+      @media (max-width: 1100px) {
+        .workspace-grid {
+          grid-template-columns: repeat(12, 1fr);
+        }
+
+        .workspace-grid__main {
+          grid-column: span 12;
+        }
+
+        .workspace-grid__aside {
+          grid-column: span 12;
+          position: static;
+        }
+
+        .workspace-toolbar__inner {
+          grid-template-columns: 1fr;
+        }
+
+        .toolbar-zone--center {
+          justify-content: stretch;
+        }
+
+        .toolbar-zone--end {
+          align-items: stretch;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .app-header {
+          padding: 0 var(--gap-3);
+          height: auto;
+          flex-direction: column;
+          gap: var(--gap-3);
+          align-items: stretch;
+          padding-top: var(--gap-3);
+          padding-bottom: var(--gap-3);
+        }
+
+        .app-nav {
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        .app-content {
+          padding: var(--gap-4) var(--gap-3) 180px;
+        }
+
+        .workspace-toolbar {
+          padding: var(--gap-3) var(--gap-3) calc(var(--gap-3) + env(safe-area-inset-bottom));
+        }
+      }
+
+      @media (max-width: 600px) {
+        body {
+          padding-bottom: 180px;
+        }
+
+        .workspace-toolbar__inner {
+          gap: var(--gap-2);
+        }
+
+        .toolbar-zone--center,
+        .toolbar-zone--nav {
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        .toolbar-zone--end {
+          flex-direction: column;
+          align-items: stretch;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toast-stack" id="toast-stack" aria-live="polite" aria-atomic="true"></div>
+    <header class="app-header shadow-md" role="banner">
+      <div class="app-brand">
+        <span class="app-title">GGSEL · Разбор товаров</span>
+        <span class="app-subtitle">Рабочее место аналитика · Тёмная тема</span>
+      </div>
+      <nav class="app-nav" role="tablist" aria-label="Основные разделы">
+        <button class="app-nav__tab is-active" data-tab="work" role="tab" aria-selected="true">
+          <span class="app-nav__dot" aria-hidden="true"></span>
+          Рабочая
+        </button>
+        <button class="app-nav__tab" data-tab="list" role="tab" aria-selected="false">
+          <span class="app-nav__dot" aria-hidden="true"></span>
+          Общий список
+        </button>
+        <button class="app-nav__tab" data-tab="admin" role="tab" aria-selected="false">
+          <span class="app-nav__dot" aria-hidden="true"></span>
+          Админ-панель
+        </button>
+      </nav>
+      <div class="user-chip" role="button" aria-haspopup="menu" aria-expanded="false">
+        <span class="user-chip__avatar">WA</span>
+        <div>
+          <strong>worker@example.com</strong>
+          <div class="text-subtle" style="font-size: 12px;">Worker · Онлайн</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-content">
+      <section class="workspace" data-screen="work" aria-labelledby="work">
+        <div class="workspace-grid">
+          <div class="workspace-grid__main">
+            <article class="product-card" aria-labelledby="product-title">
+              <div class="media-frame" tabindex="0">
+                <img src="https://images.pexels.com/photos/5082566/pexels-photo-5082566.jpeg" alt="Изображение товара" />
+                <div class="media-frame__overlay">
+                  <button class="btn btn--icon btn--ghost" data-action="open-gallery" aria-label="Открыть галерею">🔎</button>
+                </div>
+              </div>
+              <div class="product-header">
+                <h1 id="product-title">Atomic Heart — лицензионный ключ Steam</h1>
+                <div class="product-meta" id="product-meta">
+                  <span class="chip chip--accent">★ 4.8</span>
+                  <span class="chip">Продавец: <strong>Atomic Store</strong></span>
+                  <span class="chip">Платформа: Steam</span>
+                  <span class="chip">Регион: Россия</span>
+                </div>
+              </div>
+              <div class="product-footer" style="display: flex; flex-wrap: wrap; gap: var(--gap-4); align-items: flex-start;">
+                <div class="product-price-stack">
+                  <div class="price-row">
+                    <span class="price-now">1 899</span>
+                    <span class="price-currency">₽</span>
+                  </div>
+                  <div class="price-row">
+                    <span class="price-base">2 499 ₽</span>
+                    <span class="badge badge-sale">−24%</span>
+                  </div>
+                </div>
+                <div style="flex: 1; min-width: 220px; display: grid; gap: var(--gap-2);">
+                  <div class="thumbnail-strip" id="thumbnail-strip"></div>
+                  <div class="helper-text">Наведите, чтобы предварительно просмотреть миниатюру</div>
+                </div>
+              </div>
+              <div class="details-panel">
+                <div class="details-toolbar">
+                  <div class="search-field">
+                    🔎
+                    <input type="search" placeholder="Поиск по описанию: регион / ключ / платформа" aria-label="Поиск по описанию" />
+                  </div>
+                  <div class="details-toolbar__actions">
+                    <button class="btn btn--ghost" data-action="collapse-all">Свернуть всё</button>
+                    <button class="btn btn--ghost" data-action="expand-all">Развернуть всё</button>
+                  </div>
+                </div>
+                <div class="accordion" id="details-accordion">
+                  <div class="accordion-item is-open" data-accordion-item>
+                    <button class="accordion-header" type="button" data-accordion-trigger>
+                      <div>
+                        <h2 style="font-size: 16px;">Описание</h2>
+                        <div class="accordion-header__meta">1 820 символов · обновлено 12.10.2024</div>
+                      </div>
+                      <span aria-hidden="true">▾</span>
+                    </button>
+                    <div class="accordion-body">
+                      <div class="description-scroll" data-description>
+                        <p>
+                          Atomic Heart — это экшен-RPG, действие которой разворачивается в альтернативной вселенной СССР. Вы отправитесь в секретный
+                          научный комплекс, чтобы расследовать происшествие с участием боевых роботов, вооружённых экспериментальными технологиями.
+                        </p>
+                        <p>
+                          Особенности: динамичные сражения, гибрид ближнего и дальнего боя, многоуровневая прокачка навыков, яркий визуальный стиль и глубокая
+                          сюжетная линия. Версия включает бонусные материалы, облики и ранний доступ к DLC.
+                        </p>
+                        <p>
+                          Активация: аккаунт Steam · Регион: RU/CIS · Языки: русский/английский · Тип выдачи: цифровой ключ.
+                        </p>
+                      </div>
+                      <div class="path-actions" style="margin-top: var(--gap-3);">
+                        <div class="helper-text">Выделите текст и используйте «Скопировать фрагмент».</div>
+                        <div class="path-actions__group">
+                          <button class="btn btn--ghost" data-action="copy-description">Скопировать фрагмент</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="accordion-item" data-accordion-item>
+                    <button class="accordion-header" type="button" data-accordion-trigger>
+                      <div>
+                        <h2 style="font-size: 16px;">Дополнительная информация</h2>
+                        <div class="accordion-header__meta">Платформа, жанры, ключевые слова</div>
+                      </div>
+                      <span aria-hidden="true">▾</span>
+                    </button>
+                    <div class="accordion-body">
+                      <div class="description-scroll" style="min-height: 240px; max-height: 320px;">
+                        <p>Режим игры: одиночный · Поддержка контроллера · Возрастной рейтинг: 18+</p>
+                        <p>Поддержка RTX, DLSS 3. Региональные ограничения отсутствуют.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+          <aside class="workspace-grid__aside">
+            <section class="surface-card" style="padding: var(--gap-4); display: grid; gap: var(--gap-3);">
+              <header style="display: flex; align-items: center; justify-content: space-between; gap: var(--gap-2);">
+                <h2 style="font-size: 16px;">PathBuilder</h2>
+                <div class="helper-text">Двойной пробел → новый сегмент</div>
+              </header>
+              <div class="path-builder">
+                <div class="path-field" id="path-field" aria-live="polite"></div>
+                <div class="path-actions">
+                  <div class="path-actions__group">
+                    <button class="btn btn--ghost" data-action="clear-path">Очистить</button>
+                    <button class="btn btn--ghost" data-action="paste-suggestion">Вставить из подсказок</button>
+                    <button class="btn btn--ghost" data-action="copy-path">Скопировать путь</button>
+                  </div>
+                  <div class="path-actions__group">
+                    <button class="btn btn--icon" data-action="normalize-path" aria-label="Нормализовать пробелы">↺</button>
+                  </div>
+                </div>
+                <div class="helper-text" id="path-helper">Минимум два сегмента. Тип/платформа — из справочника.</div>
+              </div>
+            </section>
+
+            <section class="surface-card" style="padding: var(--gap-4); display: grid; gap: var(--gap-3);">
+              <header style="display: flex; align-items: center; justify-content: space-between; gap: var(--gap-2);">
+                <h2 style="font-size: 16px;">Предложенные пути</h2>
+                <span class="helper-text">score · источник</span>
+              </header>
+              <div class="suggestion-list" id="suggestion-list"></div>
+              <div class="empty-state" id="suggestion-empty" hidden>
+                <span style="font-size: 28px;">📂</span>
+                <p>Нет подсказок. Загрузите набор или подключите внешний сервис.</p>
+                <button class="btn btn--primary" data-action="upload-suggestions">Загрузить подсказки</button>
+              </div>
+            </section>
+
+            <section class="surface-card" style="padding: var(--gap-4); display: grid; gap: var(--gap-3);">
+              <header style="display: flex; align-items: center; justify-content: space-between; gap: var(--gap-2);">
+                <h2 style="font-size: 16px;">Статус переноса</h2>
+                <span class="helper-text">Сегмент-контрол быстрее селекта</span>
+              </header>
+              <div class="status-segmented" id="status-segmented"></div>
+              <p class="helper-text">Чтобы завершить карточку, заполните путь и выберите статус.</p>
+              <div style="display: flex; align-items: center; gap: var(--gap-2);">
+                <label class="helper-text" for="complete-toggle">Завершить карточку</label>
+                <input type="checkbox" id="complete-toggle" disabled />
+              </div>
+              <div class="helper-text">Обновлено: <span id="status-updated">—</span></div>
+            </section>
+          </aside>
+        </div>
+      </section>
+      <section class="table-card" data-screen="list" aria-labelledby="list" hidden>
+        <header style="display: flex; flex-direction: column; gap: var(--gap-3);">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: var(--gap-2); flex-wrap: wrap;">
+            <h2 style="font-size: 18px;">Общий список</h2>
+            <div class="badge">120 карточек · 28 в работе</div>
+          </div>
+          <div class="filter-bar">
+            <input class="input" placeholder="Исполнитель" />
+            <input class="input" placeholder="Статус" />
+            <input class="input" placeholder="Готовность" />
+            <input class="input" placeholder="Дата изменения" />
+            <div style="display: flex; gap: var(--gap-2);">
+              <button class="btn btn--ghost">Сброс</button>
+              <button class="btn btn--primary">Применить</button>
+            </div>
+          </div>
+        </header>
+        <div class="table-wrapper">
+          <table class="table" aria-describedby="list">
+            <thead>
+              <tr>
+                <th>URL</th>
+                <th>Исполнитель</th>
+                <th>Статус</th>
+                <th>Кем</th>
+                <th>Когда</th>
+                <th>Крошки</th>
+                <th>Кем крошки</th>
+                <th>Когда крошки</th>
+                <th>Приоритет</th>
+                <th>Кем завершено</th>
+                <th>Когда завершено</th>
+                <th>L (read-only)</th>
+                <th>Комментарий</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="list-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="admin-grid" data-screen="admin" aria-labelledby="admin" hidden>
+        <div class="metric-grid" id="metric-grid"></div>
+        <section class="surface-card" style="padding: var(--gap-4); display: grid; gap: var(--gap-3);">
+          <header style="display: flex; justify-content: space-between; align-items: center; gap: var(--gap-2);">
+            <div>
+              <h2 style="font-size: 18px;">Управление подсказками</h2>
+              <p class="helper-text">CSV/JSON · path, score, source</p>
+            </div>
+            <div style="display: flex; gap: var(--gap-2);">
+              <button class="btn btn--ghost">Выбрать файл</button>
+              <button class="btn btn--primary">Загрузить</button>
+            </div>
+          </header>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Path</th>
+                <th>Score</th>
+                <th>Source</th>
+                <th>Дата</th>
+              </tr>
+            </thead>
+            <tbody id="suggestion-table"></tbody>
+          </table>
+        </section>
+        <section class="surface-card" style="padding: var(--gap-4); display: grid; gap: var(--gap-3);">
+          <header style="display: flex; justify-content: space-between; align-items: center; gap: var(--gap-2);">
+            <div>
+              <h2 style="font-size: 18px;">Синхронизация</h2>
+              <p class="helper-text">Последняя запись побеждает</p>
+            </div>
+            <button class="btn btn--primary" data-action="run-sync">Синхронизировать сейчас</button>
+          </header>
+          <label style="display: flex; align-items: center; gap: var(--gap-2);">
+            <input type="checkbox" id="auto-sync-toggle" /> Автосинк каждые 30 минут
+          </label>
+          <div class="sync-banner" id="conflict-banner" hidden>
+            ⚠️ Обнаружены конфликты при последнем синке. Проверьте карточки и обновите данные.
+          </div>
+          <div class="helper-text">
+            Последний pull: <span id="last-pull">—</span> · Последний push: <span id="last-push">—</span> · Статус: <span id="sync-status">—</span>
+          </div>
+        </section>
+        <section class="surface-card" style="padding: var(--gap-4); display: grid; gap: var(--gap-3);">
+          <header style="display: flex; justify-content: space-between; align-items: center; gap: var(--gap-2);">
+            <div>
+              <h2 style="font-size: 18px;">Пользователи</h2>
+              <p class="helper-text">Роли и состояния аккаунтов</p>
+            </div>
+            <button class="btn btn--primary">Добавить</button>
+          </header>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Роль</th>
+                <th>Имя</th>
+                <th>Статус</th>
+                <th>Дата создания</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="users-table"></tbody>
+          </table>
+        </section>
+      </section>
+    </main>
+
+    <aside class="comment-sheet" id="comment-sheet" role="dialog" aria-modal="false" aria-labelledby="comment-title">
+      <header class="comment-header">
+        <div>
+          <h2 id="comment-title" style="font-size: 16px;">Комментарий к товару</h2>
+          <div class="comment-preview" id="comment-preview">Пока пусто</div>
+        </div>
+        <button class="btn btn--ghost" data-action="toggle-comment">Свернуть</button>
+      </header>
+      <textarea class="textarea" id="comment-input" maxlength="300" placeholder="Добавьте важные детали для коллег"></textarea>
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: var(--gap-2);">
+        <div class="helper-text">
+          <span id="comment-length">0</span>/300 · Быстрые вставки:
+          <button class="btn btn--ghost btn--icon" data-template="Отправил запрос продавцу">➕</button>
+          <button class="btn btn--ghost btn--icon" data-template="Ждём код подтверждения">➕</button>
+        </div>
+        <div style="display: flex; gap: var(--gap-2);">
+          <button class="btn btn--ghost" data-action="close-comment">Свернуть</button>
+          <button class="btn btn--primary" data-action="save-comment">Сохранить</button>
+        </div>
+      </div>
+    </aside>
+
+    <footer class="toolbar workspace-toolbar" role="contentinfo">
+      <div class="toolbar-progress">
+        <div class="toolbar-progress__bar" id="progress-bar" style="width: 20%"></div>
+      </div>
+      <div class="workspace-toolbar__inner">
+        <div class="toolbar-zone toolbar-zone--nav">
+          <button class="btn btn--ghost" data-action="prev">← Предыдущий</button>
+          <button class="btn btn--ghost" data-action="next">Следующий →</button>
+          <span class="helper-text">5 из 24</span>
+          <button class="btn btn--icon" data-action="copy-url" aria-label="Копировать URL">⧉</button>
+          <button class="btn btn--icon" data-action="open-product" aria-label="Открыть карточку">↗</button>
+          <button class="btn btn--icon" data-action="toggle-comment" aria-label="Открыть комментарий">💬</button>
+        </div>
+        <div class="toolbar-zone toolbar-zone--center">
+          <input class="input toolbar-input" id="toolbar-input" placeholder="Введите корректный путь или заметку" />
+        </div>
+        <div class="toolbar-zone toolbar-zone--end">
+          <div class="toolbar-hint" id="complete-hint">Заполните путь и статус, чтобы завершить карточку.</div>
+          <div style="display: flex; gap: var(--gap-2);">
+            <button class="btn btn--primary" data-action="save">Сохранить</button>
+            <button class="btn btn--accent" data-action="complete" disabled>Завершить</button>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      const ALLOWED_TYPES = [
+        'Аккаунты',
+        'Ключи',
+        'Покупка на ваш аккаунт',
+        'Аренда аккаунтов',
+        'Оффлайн аккаунты',
+        'Услуги активации',
+        'DLC',
+        'Скины',
+        'Предметы',
+        'Валюта',
+        'Боевой пропуск',
+        'Наборы'
+      ];
+      const ALLOWED_PLATFORMS = [
+        'Battle.net',
+        'EA app',
+        'Epic Games Store',
+        'GOG',
+        'Nintendo Switch',
+        'PlayStation',
+        'Steam',
+        'Ubisoft Connect',
+        'Xbox / Microsoft Store'
+      ];
+      const ALLOWED_EDITIONS = ['Standard Edition', 'Deluxe Edition'];
+      const COMMENT_STATE_KEY = 'ggsel:comment-collapsed';
+      const COMMENT_VALUE_KEY = 'ggsel:comment-value';
+
+      const storedCommentState = localStorage.getItem(COMMENT_STATE_KEY);
+      const storedCommentValue = localStorage.getItem(COMMENT_VALUE_KEY) || '';
+
+      const state = {
+        currentTab: 'work',
+        status: '',
+        commentOpen: storedCommentState === null ? false : !(storedCommentState === 'true'),
+        commentValue: storedCommentValue,
+        pathSegments: ['Игры', 'Atomic Heart', 'Ключи', 'Steam'],
+        suggestions: [
+          { path: 'Игры > Atomic Heart > Ключи > Steam', score: 0.94, source: 'Local' },
+          { path: 'Игры > Atomic Heart > DLC > Steam', score: 0.88, source: 'External' },
+          { path: 'Игры > Atomic Heart > Предметы > Steam', score: 0.82, source: 'External' },
+          { path: 'Игры > Atomic Heart > Наборы > Steam', score: 0.79, source: 'Local' },
+          { path: 'Игры > Atomic Heart > Валюта > Steam', score: 0.74, source: 'Local' }
+        ]
+      };
+
+      const tabButtons = document.querySelectorAll('[data-tab]');
+      const screens = document.querySelectorAll('[data-screen]');
+      const commentSheet = document.getElementById('comment-sheet');
+      const commentInput = document.getElementById('comment-input');
+      const commentPreview = document.getElementById('comment-preview');
+      const commentLength = document.getElementById('comment-length');
+      const commentToggleButtons = document.querySelectorAll('[data-action="toggle-comment"]');
+      const pathField = document.getElementById('path-field');
+      const pathHelper = document.getElementById('path-helper');
+      const completeButton = document.querySelector('[data-action="complete"]');
+      const completeHint = document.getElementById('complete-hint');
+      const progressBar = document.getElementById('progress-bar');
+      const statusUpdated = document.getElementById('status-updated');
+      const statusSegmented = document.getElementById('status-segmented');
+
+      function switchTab(next) {
+        state.currentTab = next;
+        tabButtons.forEach((button) => {
+          const isActive = button.dataset.tab === next;
+          button.classList.toggle('is-active', isActive);
+          button.setAttribute('aria-selected', String(isActive));
+        });
+        screens.forEach((screen) => {
+          const match = screen.dataset.screen === next;
+          screen.classList.toggle('is-active', match);
+          screen.toggleAttribute('hidden', !match);
+        });
+      }
+
+      tabButtons.forEach((button) => {
+        button.addEventListener('click', () => switchTab(button.dataset.tab));
+      });
+
+      const completeToggle = document.getElementById('complete-toggle');
+
+      function renderCommentSheet() {
+        commentSheet.classList.toggle('is-open', state.commentOpen);
+        const previewText = state.commentValue.trim().split('\n')[0] || 'Пока пусто';
+        commentPreview.textContent = `${previewText}${state.commentValue.length ? ` · ${state.commentValue.length}/300` : ''}`;
+        commentLength.textContent = state.commentValue.length;
+        commentInput.value = state.commentValue;
+      }
+
+      commentToggleButtons.forEach((btn) =>
+        btn.addEventListener('click', () => {
+          state.commentOpen = !state.commentOpen;
+          localStorage.setItem(COMMENT_STATE_KEY, (!state.commentOpen).toString());
+          renderCommentSheet();
+        })
+      );
+
+      document.querySelector('[data-action="close-comment"]').addEventListener('click', () => {
+        state.commentOpen = false;
+        localStorage.setItem(COMMENT_STATE_KEY, 'true');
+        renderCommentSheet();
+      });
+
+      document.querySelector('[data-action="save-comment"]').addEventListener('click', () => {
+        state.commentValue = commentInput.value;
+        localStorage.setItem(COMMENT_VALUE_KEY, state.commentValue);
+        showToast('Комментарий сохранён', 'success');
+        renderCommentSheet();
+      });
+
+      commentInput.addEventListener('input', (event) => {
+        state.commentValue = event.target.value;
+        commentLength.textContent = state.commentValue.length;
+      });
+
+      document.querySelectorAll('[data-template]').forEach((button) => {
+        button.addEventListener('click', () => {
+          commentInput.value = `${commentInput.value}\n${button.dataset.template}`.trim();
+          state.commentValue = commentInput.value;
+          commentLength.textContent = state.commentValue.length;
+        });
+      });
+
+      function createChip(segment, index) {
+        const chip = document.createElement('div');
+        chip.className = 'path-chip';
+        chip.draggable = true;
+        chip.dataset.index = index;
+        chip.innerHTML = `<span>${segment}</span><button class="path-chip__remove" type="button" aria-label="Удалить сегмент">×</button>`;
+        chip.addEventListener('dragstart', (event) => {
+          chip.classList.add('dragging');
+          event.dataTransfer.setData('text/plain', String(index));
+        });
+        chip.addEventListener('dragend', () => chip.classList.remove('dragging'));
+        chip.querySelector('.path-chip__remove').addEventListener('click', () => {
+          state.pathSegments.splice(index, 1);
+          renderPathSegments();
+        });
+        return chip;
+      }
+
+      function renderPathSegments() {
+        pathField.innerHTML = '';
+        state.pathSegments.forEach((segment, index) => {
+          const chip = createChip(segment, index);
+          pathField.appendChild(chip);
+        });
+        const inputWrapper = document.createElement('div');
+        inputWrapper.className = 'path-input-wrapper';
+        inputWrapper.innerHTML = '<input id="path-input" type="text" placeholder="Новый сегмент" aria-label="Новый сегмент" />';
+        pathField.appendChild(inputWrapper);
+        const input = inputWrapper.querySelector('input');
+        input.addEventListener('keydown', (event) => {
+          if (event.key === ' ' && input.value.endsWith(' ')) {
+            event.preventDefault();
+            commitSegment(input);
+          }
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            commitSegment(input);
+          }
+        });
+        input.addEventListener('blur', () => commitSegment(input));
+        pathField.querySelectorAll('.path-chip').forEach((chip) => {
+          chip.addEventListener('dragover', (event) => {
+            event.preventDefault();
+          });
+          chip.addEventListener('drop', (event) => {
+            event.preventDefault();
+            const fromIndex = Number(event.dataTransfer.getData('text/plain'));
+            const toIndex = Number(chip.dataset.index);
+            if (Number.isNaN(fromIndex) || Number.isNaN(toIndex) || fromIndex === toIndex) return;
+            const [moved] = state.pathSegments.splice(fromIndex, 1);
+            state.pathSegments.splice(toIndex, 0, moved);
+            renderPathSegments();
+          });
+        });
+        validatePath();
+      }
+
+      function commitSegment(input) {
+        const value = input.value.trim();
+        if (!value) return;
+        state.pathSegments.push(value);
+        input.value = '';
+        renderPathSegments();
+      }
+
+      function normalizeSegments() {
+        state.pathSegments = state.pathSegments.map((segment) => segment.replace(/\s+/g, ' ').replace(/[«»]/g, '"').trim());
+        renderPathSegments();
+      }
+
+      function clearPath() {
+        state.pathSegments = state.pathSegments.slice(0, 2);
+        renderPathSegments();
+      }
+
+      document.querySelector('[data-action="normalize-path"]').addEventListener('click', () => {
+        normalizeSegments();
+        showToast('Пробелы и кавычки нормализованы', 'success');
+      });
+
+      document.querySelector('[data-action="clear-path"]').addEventListener('click', () => {
+        clearPath();
+        showToast('Путь очищен до базовых сегментов', 'success');
+      });
+
+      document.querySelector('[data-action="paste-suggestion"]').addEventListener('click', () => {
+        const firstSuggestion = state.suggestions[0];
+        if (!firstSuggestion) {
+          showToast('Нет доступных подсказок', 'error');
+          return;
+        }
+        state.pathSegments = firstSuggestion.path.split('>').map((part) => part.trim());
+        renderPathSegments();
+        showToast('Путь применён из подсказок', 'success');
+      });
+
+      document.querySelector('[data-action="copy-path"]').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(state.pathSegments.join(' > '));
+          showToast('Путь скопирован', 'success');
+        } catch (error) {
+          showToast('Не удалось скопировать путь', 'error');
+        }
+      });
+
+      pathField.addEventListener('dragover', (event) => event.preventDefault());
+      pathField.addEventListener('drop', (event) => {
+        event.preventDefault();
+        const fromIndex = Number(event.dataTransfer.getData('text/plain'));
+        if (Number.isNaN(fromIndex)) return;
+        const [moved] = state.pathSegments.splice(fromIndex, 1);
+        state.pathSegments.push(moved);
+        renderPathSegments();
+      });
+
+      function validatePath() {
+        const chips = Array.from(pathField.querySelectorAll('.path-chip'));
+        chips.forEach((chip) => chip.classList.remove('path-chip--invalid'));
+        let message = 'Минимум два сегмента. Тип/платформа — из справочника.';
+        let isValid = true;
+        if (state.pathSegments.length < 2) {
+          isValid = false;
+          message = 'Добавьте минимум два сегмента.';
+        }
+        const [root, product, type, platform, edition] = state.pathSegments;
+        if (type && !ALLOWED_TYPES.includes(type)) {
+          chips[2]?.classList.add('path-chip--invalid');
+          isValid = false;
+          message = 'Тип товара вне справочника.';
+        }
+        if (platform && !ALLOWED_PLATFORMS.includes(platform)) {
+          chips[3]?.classList.add('path-chip--invalid');
+          isValid = false;
+          message = 'Платформа не найдена в справочнике.';
+        }
+        if (edition && !ALLOWED_EDITIONS.includes(edition)) {
+          chips[4]?.classList.add('path-chip--invalid');
+          isValid = false;
+          message = 'Издание должно быть Standard или Deluxe.';
+        }
+        pathHelper.textContent = message;
+        pathHelper.classList.toggle('helper-text--error', !isValid);
+        updateCompleteState();
+        return isValid;
+      }
+      function renderSuggestions() {
+        const list = document.getElementById('suggestion-list');
+        const empty = document.getElementById('suggestion-empty');
+        list.innerHTML = '';
+        if (!state.suggestions.length) {
+          empty.hidden = false;
+          return;
+        }
+        empty.hidden = true;
+        state.suggestions.slice(0, 5).forEach((item, index) => {
+          const container = document.createElement('div');
+          container.className = 'suggestion-item';
+          container.innerHTML = `
+            <div class="suggestion-item__rank">#${index + 1}</div>
+            <div class="suggestion-item__path">
+              <strong>${item.path}</strong>
+              <div class="suggestion-item__meta">
+                <span class="badge">${item.source}</span>
+                <span class="badge chip--accent">score ${item.score.toFixed(2)}</span>
+              </div>
+            </div>
+            <div class="suggestion-item__actions">
+              <button class="btn btn--ghost" data-role="apply">Применить</button>
+              <button class="btn btn--ghost" data-role="open">Открыть</button>
+              <button class="btn btn--ghost" data-role="copy">Скопировать</button>
+            </div>
+          `;
+          container.querySelector('[data-role="apply"]').addEventListener('click', () => {
+            state.pathSegments = item.path.split('>').map((part) => part.trim());
+            renderPathSegments();
+            showToast(`Путь #${index + 1} применён`, 'success');
+          });
+          container.querySelector('[data-role="copy"]').addEventListener('click', async () => {
+            try {
+              await navigator.clipboard.writeText(item.path);
+              showToast('Путь скопирован', 'success');
+            } catch (error) {
+              showToast('Не удалось скопировать путь', 'error');
+            }
+          });
+          container.querySelector('[data-role="open"]').addEventListener('click', () => showToast('Открываем узел подсказки', 'success'));
+          list.appendChild(container);
+        });
+      }
+
+      function renderStatusSegments() {
+        const statuses = ['Да', 'Нет', 'Иероглифы', 'Нет в наличии', 'Уже перенесен', 'Перенос не нужен'];
+        const group = document.createElement('div');
+        group.className = 'segment-group';
+        statuses.forEach((status) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = `segment${state.status === status ? ' is-active' : ''}`;
+          button.textContent = status;
+          button.addEventListener('click', () => {
+            state.status = state.status === status ? '' : status;
+            renderStatusSegments();
+            updateCompleteState();
+          });
+          group.appendChild(button);
+        });
+        statusSegmented.innerHTML = '';
+        statusSegmented.appendChild(group);
+      }
+
+      function updateCompleteState() {
+        const hasValidPath = validateBarePath();
+        const hasStatus = Boolean(state.status);
+        const ready = hasValidPath && hasStatus;
+        completeButton.disabled = !ready;
+        completeToggle.checked = ready;
+        completeToggle.disabled = !ready;
+        completeToggle.setAttribute('aria-disabled', String(!ready));
+        completeHint.textContent = ready
+          ? 'Все условия выполнены. Можно завершить карточку.'
+          : 'Заполните путь и статус, чтобы завершить карточку.';
+        completeHint.classList.toggle('toolbar-hint--error', !ready);
+        statusUpdated.textContent = ready ? new Date().toLocaleString('ru-RU') : '—';
+      }
+
+      function validateBarePath() {
+        if (state.pathSegments.length < 2) return false;
+        const type = state.pathSegments[2];
+        const platform = state.pathSegments[3];
+        const edition = state.pathSegments[4];
+        if (type && !ALLOWED_TYPES.includes(type)) return false;
+        if (platform && !ALLOWED_PLATFORMS.includes(platform)) return false;
+        if (edition && !ALLOWED_EDITIONS.includes(edition)) return false;
+        return true;
+      }
+
+      document.querySelector('[data-action="save"]').addEventListener('click', () => {
+        showToast('Изменения сохранены', 'success');
+      });
+
+      completeButton.addEventListener('click', () => {
+        if (completeButton.disabled) {
+          showToast('Заполните статус и путь', 'error');
+          return;
+        }
+        showToast('Карточка завершена', 'success');
+      });
+
+      document.querySelector('[data-action="copy-url"]').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText('https://ggsel.net/catalog/product/123456');
+          showToast('URL скопирован', 'success');
+        } catch (error) {
+          showToast('Не удалось скопировать URL', 'error');
+        }
+      });
+
+      document.querySelector('[data-action="open-product"]').addEventListener('click', () => showToast('Открываем карточку товара', 'success'));
+      document.querySelector('[data-action="prev"]').addEventListener('click', () => showToast('Предыдущий товар', 'success'));
+      document.querySelector('[data-action="next"]').addEventListener('click', () => showToast('Следующий товар', 'success'));
+      document.querySelector('[data-action="open-gallery"]').addEventListener('click', () => showToast('Галерея скоро будет доступна', 'success'));
+
+      document.querySelector('[data-action="copy-description"]').addEventListener('click', async () => {
+        const text = Array.from(document.querySelectorAll('[data-description] p'))
+          .map((p) => p.textContent)
+          .join('\n\n');
+        try {
+          await navigator.clipboard.writeText(text);
+          showToast('Фрагмент скопирован', 'success');
+        } catch (error) {
+          showToast('Не удалось скопировать фрагмент', 'error');
+        }
+      });
+
+      document.querySelector('[data-action="collapse-all"]').addEventListener('click', () => {
+        document.querySelectorAll('[data-accordion-item]').forEach((item) => item.classList.remove('is-open'));
+      });
+      document.querySelector('[data-action="expand-all"]').addEventListener('click', () => {
+        document.querySelectorAll('[data-accordion-item]').forEach((item) => item.classList.add('is-open'));
+      });
+
+      document.querySelectorAll('[data-accordion-trigger]').forEach((trigger) =>
+        trigger.addEventListener('click', () => {
+          trigger.closest('[data-accordion-item]').classList.toggle('is-open');
+        })
+      );
+
+      function showToast(message, type = 'info') {
+        const stack = document.getElementById('toast-stack');
+        const toast = document.createElement('div');
+        toast.className = `toast${type !== 'info' ? ` toast--${type}` : ''}`;
+        toast.innerHTML = `<strong>${message}</strong>`;
+        toast.tabIndex = 0;
+        toast.addEventListener('click', () => toast.remove());
+        stack.appendChild(toast);
+        setTimeout(() => {
+          toast.classList.add('is-fading');
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(-8px)';
+          setTimeout(() => toast.remove(), 250);
+        }, 3200);
+      }
+
+      function populateTables() {
+        const listBody = document.getElementById('list-body');
+        const sampleRows = Array.from({ length: 20 }).map((_, index) => ({
+          url: `https://ggsel.net/catalog/product/12${300 + index}`,
+          assignee: index % 2 ? 'worker@example.com' : '—',
+          status: index % 3 === 0 ? 'Да' : 'Нет',
+          statusBy: 'worker@example.com',
+          statusAt: `2024-10-0${(index % 9) + 1} 12:40`,
+          breadcrumbs: 'Игры > Atomic Heart > Ключи > Steam',
+          breadcrumbsBy: 'worker@example.com',
+          breadcrumbsAt: `2024-10-0${(index % 9) + 1} 13:10`,
+          priority: 'Средний',
+          completedBy: index % 2 ? 'worker@example.com' : '—',
+          completedAt: index % 2 ? `2024-10-0${(index % 9) + 1} 13:40` : '—',
+          flag: 'moved',
+          comment: index % 2 ? 'Ждать подтверждения от продавца' : '—'
+        }));
+        sampleRows.forEach((row) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><a href="${row.url}" target="_blank" rel="noopener">${row.url}</a></td>
+            <td>${row.assignee}</td>
+            <td>${row.status}</td>
+            <td>${row.statusBy}</td>
+            <td>${row.statusAt}</td>
+            <td><span class="chip">${row.breadcrumbs}</span></td>
+            <td>${row.breadcrumbsBy}</td>
+            <td>${row.breadcrumbsAt}</td>
+            <td>${row.priority}</td>
+            <td>${row.completedBy}</td>
+            <td>${row.completedAt}</td>
+            <td class="readonly">${row.flag}</td>
+            <td>${row.comment}</td>
+            <td class="table-actions">
+              <button class="btn btn--ghost" data-action="take">Взять</button>
+              <button class="btn btn--ghost" data-action="open">Открыть</button>
+            </td>
+          `;
+          listBody.appendChild(tr);
+        });
+
+        const suggestionTable = document.getElementById('suggestion-table');
+        state.suggestions.forEach((item) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${item.path}</td>
+            <td>${item.score.toFixed(2)}</td>
+            <td>${item.source}</td>
+            <td>${new Date().toLocaleDateString('ru-RU')}</td>
+          `;
+          suggestionTable.appendChild(tr);
+        });
+
+        const usersTable = document.getElementById('users-table');
+        const users = [
+          { email: 'admin@example.com', role: 'admin', name: 'Admin', status: 'Активен', created: '12.09.2024' },
+          { email: 'worker@example.com', role: 'worker', name: 'Worker', status: 'Активен', created: '01.08.2024' },
+          { email: 'askelwhite22@gmail.com', role: 'admin', name: 'Askel', status: 'Активен', created: '14.07.2024' }
+        ];
+        users.forEach((user) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${user.email}</td>
+            <td>${user.role}</td>
+            <td>${user.name}</td>
+            <td>${user.status}</td>
+            <td>${user.created}</td>
+            <td class="table-actions">
+              <button class="btn btn--ghost">Редактировать</button>
+              <button class="btn btn--ghost">Удалить</button>
+            </td>
+          `;
+          usersTable.appendChild(tr);
+        });
+      }
+      function populateMetrics() {
+        const metricGrid = document.getElementById('metric-grid');
+        const metrics = [
+          { label: 'Завершено сегодня', value: '18', trend: '+4 vs вчера' },
+          { label: 'Всего завершено', value: '432', trend: '+12 за неделю' },
+          { label: 'Активные аналитики', value: '8', trend: 'в сети сейчас' },
+          { label: 'Среднее время', value: '14 мин', trend: 'на карточку' }
+        ];
+        metrics.forEach((metric) => {
+          const card = document.createElement('div');
+          card.className = 'metric-card';
+          card.innerHTML = `
+            <span>${metric.label}</span>
+            <span class="metric-value">${metric.value}</span>
+            <span class="helper-text">${metric.trend}</span>
+          `;
+          metricGrid.appendChild(card);
+        });
+      }
+
+      document.querySelector('[data-action="run-sync"]').addEventListener('click', () => {
+        showToast('Синхронизация запущена', 'success');
+        document.getElementById('last-pull').textContent = new Date().toLocaleString('ru-RU');
+        document.getElementById('last-push').textContent = new Date().toLocaleString('ru-RU');
+        document.getElementById('sync-status').textContent = 'OK';
+        document.getElementById('conflict-banner').hidden = Math.random() > 0.5;
+      });
+
+      document.getElementById('auto-sync-toggle').addEventListener('change', (event) => {
+        showToast(event.target.checked ? 'Автосинк включен' : 'Автосинк выключен', 'success');
+      });
+
+      function renderThumbnails() {
+        const strip = document.getElementById('thumbnail-strip');
+        const sources = [
+          'https://images.pexels.com/photos/5082565/pexels-photo-5082565.jpeg',
+          'https://images.pexels.com/photos/5082570/pexels-photo-5082570.jpeg',
+          'https://images.pexels.com/photos/5082574/pexels-photo-5082574.jpeg'
+        ];
+        strip.innerHTML = '';
+        sources.forEach((src, index) => {
+          const thumb = document.createElement('button');
+          thumb.className = `thumbnail${index === 0 ? ' is-active' : ''}`;
+          thumb.innerHTML = `<img src="${src}" alt="Миниатюра ${index + 1}" />`;
+          const activate = () => {
+            document.querySelector('.media-frame img').src = src;
+            strip.querySelectorAll('.thumbnail').forEach((el) => el.classList.remove('is-active'));
+            thumb.classList.add('is-active');
+          };
+          thumb.addEventListener('mouseenter', activate);
+          thumb.addEventListener('focus', activate);
+          strip.appendChild(thumb);
+        });
+      }
+
+      function init() {
+        renderCommentSheet();
+        renderPathSegments();
+        renderSuggestions();
+        renderStatusSegments();
+        renderThumbnails();
+        populateTables();
+        populateMetrics();
+        progressBar.style.width = '21%';
+      }
+
+      init();
+    </script>
+  </body>
+</html>
