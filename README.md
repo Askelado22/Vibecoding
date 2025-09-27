@@ -24,6 +24,8 @@ python manage.py runserver
 > 💡 **Windows PowerShell:** активируйте окружение командой `\.venv\Scripts\Activate.ps1` (в cmd используйте `\.venv\Scripts\activate`).
 > Если система блокирует скрипт, выполните `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` один раз или запустите `powershell -ExecutionPolicy Bypass -File .\.venv\Scripts\Activate.ps1`.
 
+Команда `ensure_env` создаёт `.env` из примера и по умолчанию выставляет `DEBUG=true`, чтобы статика и тема корректно отдавались дев-сервером Django.
+
 После запуска документация доступна на [`/api/docs/`](http://127.0.0.1:8000/api/docs/) (Swagger-UI), схема — на `/api/schema/`.
 
 Встроенный веб-интерфейс для работы с карточками доступен на корневом пути [`/`](http://127.0.0.1:8000/).
@@ -47,6 +49,7 @@ python manage.py runserver
 
 Пример — `.env.example`. Команда `python manage.py ensure_env` создаёт `.env` и добавляет обязательные ключи.
 
+- `DEBUG` — режим разработки; оставьте `true`, чтобы Django отдавал статику и тему UI.
 - `DATA_SOURCE` — текущий источник данных (db/sheets).
 - `DATABASE_URL` — строка подключения (`sqlite:///dev.db` по умолчанию).
 - `GAS_BASE_URL` — URL скрипта Google Apps Script.

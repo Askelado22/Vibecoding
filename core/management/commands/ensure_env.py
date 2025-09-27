@@ -6,6 +6,7 @@ from pathlib import Path
 from django.core.management.base import BaseCommand
 
 REQUIRED_KEYS = [
+    'DEBUG',
     'DATA_SOURCE',
     'DATABASE_URL',
     'GAS_BASE_URL',
