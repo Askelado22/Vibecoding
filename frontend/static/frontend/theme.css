@@ -1,0 +1,330 @@
+:root {
+  color-scheme: dark;
+  font-family: "Inter", "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+  --bg: #0f1115;
+  --surface: #151924;
+  --surface-2: #1b2030;
+  --surface-3: #1f2537;
+  --surface-overlay: rgba(15, 17, 21, 0.85);
+  --text: #e6e9ef;
+  --text-muted: #9aa3b2;
+  --text-subtle: #657089;
+  --blue: #3b82f6;
+  --blue-soft: #60a5fa;
+  --rose: #f43f5e;
+  --rose-soft: #fb7185;
+  --green: #34d399;
+  --border: #2a3142;
+  --border-strong: #3b445a;
+  --focus: #93c5fd;
+  --shadow: 0 14px 45px rgba(4, 6, 12, 0.55);
+  --shadow-soft: 0 8px 28px rgba(5, 8, 14, 0.45);
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --gap-1: 6px;
+  --gap-2: 10px;
+  --gap-3: 14px;
+  --gap-4: 20px;
+  --gap-5: 28px;
+  --gap-6: 36px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100%;
+}
+
+body {
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--blue);
+  text-decoration: none;
+}
+
+a:hover,
+a:focus-visible {
+  text-decoration: underline;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.text-subtle {
+  color: var(--text-muted);
+}
+
+.shadow-lg {
+  box-shadow: var(--shadow);
+}
+
+.shadow-md {
+  box-shadow: var(--shadow-soft);
+}
+
+.surface-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 12px;
+  padding: 0 var(--gap-2);
+  height: 24px;
+  line-height: 24px;
+  background: rgba(91, 105, 135, 0.18);
+  color: var(--text-muted);
+  border: 1px solid rgba(91, 105, 135, 0.24);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(46, 57, 80, 0.55);
+  border: 1px solid rgba(82, 94, 124, 0.6);
+  font-size: 13px;
+}
+
+.chip--accent {
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--blue);
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+.chip--warning {
+  background: rgba(244, 63, 94, 0.14);
+  color: var(--rose);
+  border-color: rgba(244, 63, 94, 0.3);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  padding: 0 var(--gap-4);
+  height: 38px;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.12s ease;
+}
+
+.btn:hover,
+.btn:focus-visible {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #0d1627;
+}
+
+.btn--primary:hover,
+.btn--primary:focus-visible {
+  background: var(--blue-soft);
+  border-color: var(--blue-soft);
+}
+
+.btn--accent {
+  background: var(--rose);
+  border-color: var(--rose);
+  color: #15050a;
+}
+
+.btn--accent:hover,
+.btn--accent:focus-visible {
+  background: var(--rose-soft);
+  border-color: var(--rose-soft);
+}
+
+.btn--ghost {
+  background: rgba(34, 40, 56, 0.65);
+  border-color: rgba(58, 68, 94, 0.65);
+  color: var(--text);
+}
+
+.btn--ghost:hover,
+.btn--ghost:focus-visible {
+  background: rgba(58, 68, 94, 0.75);
+}
+
+.btn--icon {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: rgba(17, 22, 33, 0.85);
+  padding: 0 var(--gap-3);
+  height: 38px;
+  color: var(--text);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.textarea {
+  padding-top: var(--gap-2);
+  padding-bottom: var(--gap-2);
+  min-height: 120px;
+  resize: vertical;
+}
+
+.input:focus-visible,
+.textarea:focus-visible,
+.select:focus-visible {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35);
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-2);
+  padding: 14px var(--gap-3);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  z-index: 1;
+}
+
+.table tbody td {
+  padding: 12px var(--gap-3);
+  font-size: 13px;
+  border-bottom: 1px solid rgba(40, 47, 64, 0.65);
+}
+
+.table tbody tr:nth-child(even) td {
+  background: rgba(26, 30, 44, 0.55);
+}
+
+.table tbody tr:hover td {
+  background: rgba(37, 44, 64, 0.65);
+}
+
+.toolbar {
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+  background: var(--surface-overlay);
+  border-top: 1px solid var(--border);
+  backdrop-filter: blur(18px);
+}
+
+.toast-stack {
+  position: fixed;
+  top: 18px;
+  right: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 200;
+}
+
+.toast {
+  background: rgba(18, 23, 36, 0.9);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--blue);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  min-width: 240px;
+  display: grid;
+  gap: 6px;
+}
+
+.toast--success {
+  border-left-color: var(--green);
+}
+
+.toast--error {
+  border-left-color: var(--rose);
+}
+
+@media (max-width: 768px) {
+  .btn {
+    height: 36px;
+    padding: 0 var(--gap-3);
+  }
+
+  .input,
+  .textarea,
+  .select {
+    height: 36px;
+  }
+}
