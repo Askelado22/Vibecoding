@@ -1,0 +1,346 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GGSEL · Разбор товаров</title>
+    <link rel="stylesheet" href="{% static 'frontend/theme.css' %}" />
+  </head>
+  <body>
+    <div class="app-shell" data-app>
+      <header class="app-header" role="banner">
+        <div class="app-header__inner">
+          <div>
+            <div class="brand-title">GGSEL · Разбор товаров</div>
+            <div class="brand-subtitle">Рабочее место аналитика · MSK</div>
+          </div>
+          <nav class="app-nav" aria-label="Основные разделы">
+            <a class="app-nav__tab app-nav__tab--active" href="#work" data-tab-trigger="work">Рабочая</a>
+            <a class="app-nav__tab" href="#list" data-tab-trigger="list">Общий список</a>
+            <a class="app-nav__tab" href="#admin" data-tab-trigger="admin">Админ-панель</a>
+          </nav>
+          <div class="user-chip" role="button" aria-label="Меню пользователя">
+            <span class="user-chip__avatar">WA</span>
+            <span class="user-chip__name">worker@example.com</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="page" role="main">
+        <div class="page__container">
+          <section id="tab-work" class="tabs-panel tabs-panel--active" aria-label="Рабочая вкладка">
+            <div class="section-toolbar" role="group" aria-label="Управление страницей">
+              <div>
+                <h1 class="card__title">Atomic Heart</h1>
+                <p class="card__subtitle">GGSEL · #184920 · Актуальная цена и описания</p>
+              </div>
+              <div class="section-toolbar__actions">
+                <button class="btn btn--pill btn--ghost" data-action="collapse-all">Свернуть всё</button>
+                <button class="btn btn--pill" data-action="expand-all">Развернуть всё</button>
+              </div>
+            </div>
+
+            <div class="grid-workspace">
+              <div class="workspace-main">
+                <article class="card" aria-labelledby="product-card-title">
+                  <div class="media-gallery">
+                    <div class="media-frame" tabindex="0">
+                      <img src="https://images.unsplash.com/photo-1542751110-97427bbecf20?auto=format&fit=crop&w=1200&q=80" alt="Atomic Heart" />
+                      <button class="media-frame__action" type="button" data-action="open-gallery">
+                        <span aria-hidden="true">🖼</span>
+                        <span>Галерея</span>
+                      </button>
+                    </div>
+                    <div class="meta-chips" aria-label="Метаданные товара">
+                      <span class="chip chip--primary" aria-label="Рейтинг">★ 4.8</span>
+                      <span class="chip" aria-label="Продавец">Digital Goods</span>
+                      <span class="chip" aria-label="Платформа">Steam</span>
+                    </div>
+                    <div class="price-stack" aria-label="Цена">
+                      <div>
+                        <span class="price-stack__current">1 899</span>
+                        <span class="price-stack__currency">₽</span>
+                      </div>
+                      <span class="price-stack__base">2 499 ₽</span>
+                      <span class="chip chip--accent">−24%</span>
+                    </div>
+                    <div class="thumbnail-strip" role="list">
+                      <button class="thumbnail-strip__item thumbnail-strip__item--active" type="button" aria-label="Превью 1">
+                        <img src="https://images.unsplash.com/photo-1528825871115-3581a5387919?auto=format&fit=crop&w=120&q=60" alt="" />
+                      </button>
+                      <button class="thumbnail-strip__item" type="button" aria-label="Превью 2">
+                        <img src="https://images.unsplash.com/photo-1524678606370-a47ad25cb82a?auto=format&fit=crop&w=120&q=60" alt="" />
+                      </button>
+                      <button class="thumbnail-strip__item" type="button" aria-label="Превью 3">
+                        <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=120&q=60" alt="" />
+                      </button>
+                      <button class="thumbnail-strip__item" type="button" aria-label="Превью 4">
+                        <img src="https://images.unsplash.com/photo-1526404428533-96e7d1d6f3c0?auto=format&fit=crop&w=120&q=60" alt="" />
+                      </button>
+                    </div>
+                  </div>
+                  <footer>
+                    <a href="https://ggsel.net" target="_blank" rel="noopener" class="chip chip--primary">ggsel.net/catalog/product/123456</a>
+                  </footer>
+                </article>
+
+                <section class="card card--flush" aria-labelledby="details-title">
+                  <header class="section-toolbar">
+                    <div>
+                      <h2 id="details-title" class="card__title">Описание и детали</h2>
+                      <p class="card__subtitle">Поиск по тексту выделяет совпадения</p>
+                    </div>
+                    <div class="search-field" role="search">
+                      <span aria-hidden="true">🔍</span>
+                      <input type="search" placeholder="Поиск по описанию" data-description-search />
+                    </div>
+                  </header>
+                  <div class="accordion" data-accordion>
+                    <article class="accordion__item" data-accordion-item="description">
+                      <header class="accordion__header" data-accordion-toggle>
+                        <div>
+                          <h3 class="card__title">Описание</h3>
+                          <p class="card__subtitle">~ 2 400 символов · auto-scroll ≥ 560px</p>
+                        </div>
+                        <span class="badge badge--primary" aria-live="polite">Открыто</span>
+                      </header>
+                      <div class="accordion__body accordion__body--open">
+                        <div class="scroll-pane" data-description>
+                          <p>Atomic Heart — приключенческий экшен, сочетающий ретрофутуризм и советскую эстетику. Вас ждёт исследование гигантского научного комплекса, заполненного машинами и экспериментами.</p>
+                          <p>Соберите уникальные сборки оружия, комбинируйте способности и экспериментируйте с боевыми стилями. Улучшения доступны по мере прохождения, а некоторые секции открываются только при решении головоломок.</p>
+                          <p>В издании представлены бонусные материалы: цифровой артбук, набор скинов и ранний доступ к сезонному пропуску.</p>
+                        </div>
+                      </div>
+                    </article>
+                    <article class="accordion__item" data-accordion-item="extra">
+                      <header class="accordion__header" data-accordion-toggle>
+                        <div>
+                          <h3 class="card__title">Дополнительная информация</h3>
+                          <p class="card__subtitle">Системные требования, языки, ключи</p>
+                        </div>
+                        <span class="badge">Свернуто</span>
+                      </header>
+                      <div class="accordion__body">
+                        <div class="scroll-pane" style="max-height: 320px;">
+                          <p>Минимальные требования: Windows 10, Intel i5-7600K / AMD Ryzen 5 1600, 16GB RAM, GTX 1070 / RX 580.</p>
+                          <p>Языки интерфейса: Русский, Английский, Немецкий, Французский. Активация по ключу Steam.</p>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                </section>
+              </div>
+
+              <aside class="workspace-side" aria-label="Рабочие действия">
+                <section class="card" aria-labelledby="path-builder-title">
+                  <div class="section-toolbar">
+                    <div>
+                      <h2 id="path-builder-title" class="card__title">PathBuilder</h2>
+                      <p class="card__subtitle">Соберите путь в виде крошек</p>
+                    </div>
+                    <button class="btn btn--sm" data-action="normalize-path" title="Нормализовать пробелы">⇄</button>
+                  </div>
+                  <div class="path-builder" data-path-builder>
+                    <div class="path-builder__input" data-path-input>
+                      <span class="path-builder__chip" data-chip value="Игры">Игры<button type="button" aria-label="Удалить сегмент">×</button></span>
+                      <span class="path-builder__chip" data-chip value="Atomic Heart">Atomic Heart<button type="button" aria-label="Удалить сегмент">×</button></span>
+                      <input class="path-builder__field" type="text" placeholder="Добавьте сегмент" data-path-field aria-label="Новый сегмент" />
+                    </div>
+                    <div class="path-builder__actions">
+                      <button class="btn btn--sm" data-action="clear-path">Очистить</button>
+                      <button class="btn btn--sm" data-action="suggest-root">Вставить корень</button>
+                      <button class="btn btn--sm" data-action="copy-path">Скопировать</button>
+                    </div>
+                    <p class="card__subtitle" data-path-hint>Двойной пробел → `>` · минимум два сегмента.</p>
+                  </div>
+                </section>
+
+                <section class="card" aria-labelledby="suggestions-title">
+                  <div class="section-toolbar">
+                    <div>
+                      <h2 id="suggestions-title" class="card__title">Предложенные пути</h2>
+                      <p class="card__subtitle">Ранжированы по релевантности</p>
+                    </div>
+                    <span class="badge" data-suggestions-meta>Обновлено только что</span>
+                  </div>
+                  <div class="suggestions" data-suggestions></div>
+                  <div class="card__subtitle" data-empty-suggestions hidden>
+                    <div class="card">Нет предложений. <button class="btn btn--sm btn--primary" data-action="upload-suggestions">Загрузить подсказки</button></div>
+                  </div>
+                </section>
+
+                <section class="card" aria-labelledby="status-title">
+                  <h2 id="status-title" class="card__title">Статус переноса</h2>
+                  <p class="card__subtitle">Выберите вариант, чтобы разблокировать завершение</p>
+                  <div class="segmented" role="radiogroup" data-status-group>
+                    <button type="button" class="segmented__option" data-status="Да">Да</button>
+                    <button type="button" class="segmented__option" data-status="Нет">Нет</button>
+                    <button type="button" class="segmented__option" data-status="Иероглифы">Иероглифы</button>
+                    <button type="button" class="segmented__option" data-status="Нет в наличии">Нет в наличии</button>
+                    <button type="button" class="segmented__option" data-status="Уже перенесён">Уже перенесён</button>
+                    <button type="button" class="segmented__option" data-status="Перенос не нужен">Перенос не нужен</button>
+                  </div>
+                  <div class="toolbar__status" data-status-helper>Заполните крошки, чтобы завершить карточку.</div>
+                  <dl class="card__subtitle">
+                    <div><dt>Обновлено:</dt> <dd data-status-updated>—</dd></div>
+                  </dl>
+                </section>
+              </aside>
+            </div>
+          </section>
+
+          <section id="tab-list" class="tabs-panel" aria-label="Общий список">
+            <div class="card">
+              <header class="section-toolbar">
+                <div>
+                  <h2 class="card__title">Фильтры</h2>
+                  <p class="card__subtitle">Фокус на колонках A..M без горизонтального скролла</p>
+                </div>
+                <div class="section-toolbar__actions">
+                  <button class="btn btn--sm" data-action="reset-filters">Сбросить</button>
+                  <button class="btn btn--primary btn--sm" data-action="apply-filters">Применить</button>
+                </div>
+              </header>
+              <div class="grid-workspace" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                <label>Исполнитель<input type="text" placeholder="Все" /></label>
+                <label>Статус<select><option>Все</option></select></label>
+                <label>Диапазон дат<select><option>E</option><option>H</option><option>K</option></select></label>
+                <label>Поиск<input type="search" placeholder="URL / крошки / комментарий" /></label>
+              </div>
+            </div>
+
+            <div class="table-wrapper" aria-live="polite">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>A · URL</th>
+                    <th>B · Исполнитель</th>
+                    <th>C · Статус</th>
+                    <th>D · Кто сменил</th>
+                    <th>E · Когда</th>
+                    <th>F · Крошки</th>
+                    <th>G · Кто крошки</th>
+                    <th>H · Когда крошки</th>
+                    <th>I · Приоритет</th>
+                    <th>J · Завершил</th>
+                    <th>K · Когда завершил</th>
+                    <th>L · Флаг</th>
+                    <th>M · Комментарий</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="list-body"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="tab-admin" class="tabs-panel" aria-label="Админ-панель">
+            <div class="grid-workspace" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+              <div class="card">
+                <h2 class="card__title">Метрики</h2>
+                <div class="meta-chips" id="metric-grid"></div>
+              </div>
+              <div class="card">
+                <h2 class="card__title">Синхронизация</h2>
+                <div class="toolbar__group">
+                  <label class="chip">
+                    <input type="checkbox" id="auto-sync-toggle" />
+                    Автосинк каждые 30 минут
+                  </label>
+                  <button class="btn btn--primary" data-action="run-sync">Синхронизировать сейчас</button>
+                </div>
+                <dl class="card__subtitle">
+                  <div><dt>Последний pull:</dt> <dd id="last-pull">—</dd></div>
+                  <div><dt>Последний push:</dt> <dd id="last-push">—</dd></div>
+                  <div><dt>Статус:</dt> <dd id="sync-status">—</dd></div>
+                </dl>
+                <div class="badge badge--accent" id="conflict-banner" hidden>Конфликт: удалённые данные обновлены</div>
+              </div>
+              <div class="card">
+                <h2 class="card__title">Подсказки</h2>
+                <table class="table" aria-describedby="suggestions-title">
+                  <thead>
+                    <tr>
+                      <th>Path</th>
+                      <th>Score</th>
+                      <th>Source</th>
+                      <th>Дата</th>
+                    </tr>
+                  </thead>
+                  <tbody id="suggestion-table"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Роль</th>
+                    <th>Имя</th>
+                    <th>Статус</th>
+                    <th>Создан</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="users-table"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <aside class="comment-block" data-comment-drawer aria-live="polite">
+        <div class="comment-block__inner">
+          <header class="comment-block__header">
+            <div>
+              <h2 class="card__title">Комментарий к товару</h2>
+              <p class="comment-preview" data-comment-preview>Добавьте заметку для команды</p>
+            </div>
+            <button class="btn btn--sm" data-action="toggle-comment" data-label-expanded="Свернуть" data-label-collapsed="Развернуть" aria-expanded="false">Свернуть</button>
+          </header>
+          <textarea rows="4" maxlength="300" data-comment-input placeholder="Оставьте комментарий"></textarea>
+          <div class="toolbar__group">
+            <div class="toolbar__status" data-comment-counter>0 / 300</div>
+            <div class="toolbar__group">
+              <button class="btn btn--sm" data-action="insert-template" value="Нужно уточнение у продавца">Нужно уточнение</button>
+              <button class="btn btn--sm" data-action="insert-template" value="Ждём ответа клиента">Ждём ответ</button>
+            </div>
+            <button class="btn btn--primary" data-action="save-comment">Сохранить</button>
+          </div>
+        </div>
+      </aside>
+
+      <footer class="toolbar" role="contentinfo">
+        <div class="toolbar__progress"><div class="toolbar__progress-bar" data-progress></div></div>
+        <div class="toolbar__inner">
+          <div class="toolbar__group" aria-label="Навигация по очереди">
+            <button class="btn" data-action="prev">← Предыдущий</button>
+            <button class="btn" data-action="next">Следующий →</button>
+            <span class="toolbar__status" data-progress-label>1 из 25</span>
+          </div>
+          <div class="toolbar__group toolbar__main-input">
+            <input type="text" class="toolbar__main-input" placeholder="Быстрое примечание к карточке" data-quick-note />
+          </div>
+          <div class="toolbar__group" aria-label="Сохранение">
+            <button class="btn" data-action="toggle-comment" data-label-expanded="Свернуть" data-label-collapsed="Комментарий">Комментарий</button>
+            <button class="btn btn--primary" data-action="save">Сохранить</button>
+            <div>
+              <button class="btn btn--accent" data-action="complete" disabled>Завершить карточку</button>
+              <div class="toolbar__status" data-complete-hint>Выберите статус и путь.</div>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <div class="toast-stack" data-toast-stack aria-live="polite" aria-atomic="false"></div>
+    <template id="toast-template">
+      <div class="toast" role="status"></div>
+    </template>
+
+    <script src="{% static 'frontend/app.js' %}" defer></script>
+  </body>
+</html>
