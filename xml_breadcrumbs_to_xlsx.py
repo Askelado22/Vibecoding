@@ -54,13 +54,17 @@ def find_child_text(elem: ET.Element, tag: str) -> Optional[str]:
     return None
 
 
-def parse_items(xml_path: Path) -> Tuple[Dict[int, Item], List[int]]:
+def parse_items(
+    xml_path: Path,
+) -> Tuple[Dict[int, Item], Dict[int, Item], List[int]]:
     """Stream-parse items from an XML file.
 
-    Returns a mapping of id -> Item and a list of IDs preserving the XML order.
+    Returns mappings ``id -> Item`` and ``digi_id -> Item`` along with the
+    ordered list of ``id`` values preserving the XML sequence.
     """
 
-    items: Dict[int, Item] = {}
+    items_by_id: Dict[int, Item] = {}
+    items_by_digi: Dict[int, Item] = {}
     order: List[int] = []
 
     root: Optional[ET.Element] = None
@@ -89,7 +93,7 @@ def parse_items(xml_path: Path) -> Tuple[Dict[int, Item], List[int]]:
                 name = (find_child_text(elem, "title") or "").strip()
             digi_id = parse_int(find_child_text(elem, "digi_catalog"))
 
-            if item_id in items:
+            if item_id in items_by_id:
                 logging.warning(
                     "Duplicate <item> id %d encountered; overriding previous entry",
                     item_id,
@@ -97,12 +101,25 @@ def parse_items(xml_path: Path) -> Tuple[Dict[int, Item], List[int]]:
             else:
                 order.append(item_id)
 
-            items[item_id] = Item(
+            item = Item(
                 item_id=item_id,
                 parent_id=parent_id,
                 digi_id=digi_id,
                 name=name,
             )
+
+            items_by_id[item_id] = item
+
+            if digi_id is not None:
+                previous = items_by_digi.get(digi_id)
+                if previous is not None and previous.item_id != item_id:
+                    logging.debug(
+                        "digi_catalog %d already mapped to item %d; overriding with %d",
+                        digi_id,
+                        previous.item_id,
+                        item_id,
+                    )
+                items_by_digi[digi_id] = item
 
             elem.clear()
             if root is not None:
@@ -115,11 +132,12 @@ def parse_items(xml_path: Path) -> Tuple[Dict[int, Item], List[int]]:
         except UnboundLocalError:
             pass
 
-    return items, order
+    return items_by_id, items_by_digi, order
 
 
 def build_breadcrumbs(
-    items: Dict[int, Item],
+    items_by_id: Dict[int, Item],
+    items_by_digi: Dict[int, Item],
     order: Sequence[int],
     separator: str,
     empty_name_placeholder: str,
@@ -139,12 +157,18 @@ def build_breadcrumbs(
             raise RuntimeError(f"Cycle detected in parent chain: {cycle}")
 
         stack.append(item_id)
-        item = items[item_id]
+        item = items_by_id[item_id]
         segments: List[str] = []
 
         parent_id = item.parent_id
-        if parent_id is not None and parent_id != item_id and parent_id in items:
-            parent_segments = resolve(parent_id, stack)
+        parent_item: Optional[Item] = None
+        if parent_id is not None and parent_id != item_id:
+            parent_item = items_by_id.get(parent_id)
+            if parent_item is None:
+                parent_item = items_by_digi.get(parent_id)
+
+        if parent_item is not None:
+            parent_segments = resolve(parent_item.item_id, stack)
             segments.extend(parent_segments)
 
         if item.name:
@@ -166,11 +190,11 @@ def build_breadcrumbs(
         return result
 
     for item_id in order:
-        if item_id not in items:
+        if item_id not in items_by_id:
             continue
         breadcrumb_segments = resolve(item_id, [])
         breadcrumb_text = separator.join(breadcrumb_segments)
-        item = items[item_id]
+        item = items_by_id[item_id]
         if item.digi_id is None:
             logging.debug("Skipping item %d because digi_id is missing", item_id)
             continue
@@ -265,13 +289,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     configure_logging(args.log_level)
 
     logging.info("Parsing XML from %s", args.xml)
-    items, order = parse_items(args.xml)
-    logging.info("Parsed %d items", len(items))
+    items_by_id, items_by_digi, order = parse_items(args.xml)
+    logging.info("Parsed %d items", len(items_by_id))
 
     logging.info("Building breadcrumbs and writing XLSX to %s", args.xlsx)
     row_count = write_xlsx(
         build_breadcrumbs(
-            items=items,
+            items_by_id=items_by_id,
+            items_by_digi=items_by_digi,
             order=order,
             separator=args.separator,
             empty_name_placeholder=args.empty_name_placeholder,
