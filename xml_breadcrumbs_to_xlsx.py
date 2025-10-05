@@ -20,6 +20,8 @@ class Item:
     parent_id: Optional[int]
     digi_id: Optional[int]
     name: str
+    child_digi_ids: Tuple[int, ...]
+    position: int
 
 
 def strip_tag(tag: str) -> str:
@@ -42,7 +44,31 @@ def parse_int(text: Optional[str]) -> Optional[int]:
         return int(text)
     except ValueError:
         logging.warning("Cannot parse integer from value %r", text)
-        return None
+    return None
+
+
+def parse_child_ids(text: Optional[str]) -> Tuple[int, ...]:
+    """Parse ``child_ids`` values into a tuple of integers."""
+
+    if not text:
+        return ()
+
+    text = text.strip()
+    if not text or text.lower() in {"null", "none", "[null]"}:
+        return ()
+
+    if text.startswith("[") and text.endswith("]"):
+        text = text[1:-1]
+
+    if not text:
+        return ()
+
+    values: List[int] = []
+    for part in text.split(","):
+        value = parse_int(part.strip())
+        if value is not None:
+            values.append(value)
+    return tuple(values)
 
 
 def find_child_text(elem: ET.Element, tag: str) -> Optional[str]:
@@ -56,7 +82,7 @@ def find_child_text(elem: ET.Element, tag: str) -> Optional[str]:
 
 def parse_items(
     xml_path: Path,
-) -> Tuple[Dict[int, Item], Dict[int, Item], List[int]]:
+) -> Tuple[Dict[int, Item], Dict[int, List[Item]], List[int]]:
     """Stream-parse items from an XML file.
 
     Returns mappings ``id -> Item`` and ``digi_id -> Item`` along with the
@@ -64,7 +90,7 @@ def parse_items(
     """
 
     items_by_id: Dict[int, Item] = {}
-    items_by_digi: Dict[int, Item] = {}
+    items_by_digi: Dict[int, List[Item]] = {}
     order: List[int] = []
 
     root: Optional[ET.Element] = None
@@ -101,25 +127,22 @@ def parse_items(
             else:
                 order.append(item_id)
 
+            child_digi_ids = parse_child_ids(find_child_text(elem, "child_ids"))
+
             item = Item(
                 item_id=item_id,
                 parent_id=parent_id,
                 digi_id=digi_id,
                 name=name,
+                child_digi_ids=child_digi_ids,
+                position=len(order) - 1,
             )
 
             items_by_id[item_id] = item
 
             if digi_id is not None:
-                previous = items_by_digi.get(digi_id)
-                if previous is not None and previous.item_id != item_id:
-                    logging.debug(
-                        "digi_catalog %d already mapped to item %d; overriding with %d",
-                        digi_id,
-                        previous.item_id,
-                        item_id,
-                    )
-                items_by_digi[digi_id] = item
+                bucket = items_by_digi.setdefault(digi_id, [])
+                bucket.append(item)
 
             elem.clear()
             if root is not None:
@@ -135,13 +158,34 @@ def parse_items(
     return items_by_id, items_by_digi, order
 
 
+def select_parent_candidate(child: Item, candidates: Sequence[Item]) -> Optional[Item]:
+    """Choose the most plausible parent from ``candidates`` for ``child``."""
+
+    pool_candidates = [c for c in candidates if c.item_id != child.item_id]
+
+    if not pool_candidates:
+        return None
+
+    filtered: List[Item] = []
+    if child.digi_id is not None:
+        filtered = [c for c in pool_candidates if child.digi_id in c.child_digi_ids]
+
+    if len(filtered) == 1:
+        candidate = filtered[0]
+    else:
+        pool = filtered or pool_candidates
+        candidate = min(pool, key=lambda item: item.position)
+
+    return candidate
+
+
 class BreadcrumbCycleError(RuntimeError):
     """Raised when a cycle is detected while resolving breadcrumbs."""
 
 
 def build_breadcrumbs(
     items_by_id: Dict[int, Item],
-    items_by_digi: Dict[int, Item],
+    items_by_digi: Dict[int, List[Item]],
     order: Sequence[int],
     separator: str,
     empty_name_placeholder: str,
@@ -169,7 +213,9 @@ def build_breadcrumbs(
         if parent_id is not None and parent_id != item_id:
             parent_item = items_by_id.get(parent_id)
             if parent_item is None:
-                parent_item = items_by_digi.get(parent_id)
+                candidates = items_by_digi.get(parent_id, [])
+                if candidates:
+                    parent_item = select_parent_candidate(item, candidates)
 
         if parent_item is not None:
             parent_segments = resolve(parent_item.item_id, stack)
