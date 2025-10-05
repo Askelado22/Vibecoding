@@ -45,6 +45,15 @@ def parse_int(text: Optional[str]) -> Optional[int]:
         return None
 
 
+def find_child_text(elem: ET.Element, tag: str) -> Optional[str]:
+    """Return the text of the first direct child matching ``tag`` ignoring namespaces."""
+
+    for child in elem:
+        if strip_tag(child.tag) == tag:
+            return child.text
+    return None
+
+
 def parse_items(xml_path: Path) -> Tuple[Dict[int, Item], List[int]]:
     """Stream-parse items from an XML file.
 
@@ -61,19 +70,19 @@ def parse_items(xml_path: Path) -> Tuple[Dict[int, Item], List[int]]:
                 elem.clear()
                 continue
 
-            item_id = parse_int(elem.findtext("id"))
+            item_id = parse_int(find_child_text(elem, "id"))
             if item_id is None:
                 logging.debug("Skipping <item> without valid <id>")
                 elem.clear()
                 continue
 
-            parent_id = parse_int(elem.findtext("parent_id"))
+            parent_id = parse_int(find_child_text(elem, "parent_id"))
             if parent_id == 0:
                 parent_id = None
-            name = (elem.findtext("name") or "").strip()
+            name = (find_child_text(elem, "name") or "").strip()
             if not name:
-                name = (elem.findtext("title") or "").strip()
-            digi_id = parse_int(elem.findtext("digi_catalog"))
+                name = (find_child_text(elem, "title") or "").strip()
+            digi_id = parse_int(find_child_text(elem, "digi_catalog"))
 
             if item_id in items:
                 logging.warning(
@@ -188,7 +197,19 @@ def write_xlsx(
         sheet.append([breadcrumb, digi_id, item_id])
         count += 1
 
-    workbook.save(output_path)
+    try:
+        workbook.save(output_path)
+    except PermissionError as exc:
+        raise RuntimeError(
+            "Failed to write XLSX file. Close any application using "
+            f"{output_path!s} and try again."
+        ) from exc
+    finally:
+        try:
+            workbook.close()
+        except Exception:  # pragma: no cover - close may fail silently depending on openpyxl
+            pass
+
     return count
 
 
