@@ -135,6 +135,10 @@ def parse_items(
     return items_by_id, items_by_digi, order
 
 
+class BreadcrumbCycleError(RuntimeError):
+    """Raised when a cycle is detected while resolving breadcrumbs."""
+
+
 def build_breadcrumbs(
     items_by_id: Dict[int, Item],
     items_by_digi: Dict[int, Item],
@@ -154,7 +158,7 @@ def build_breadcrumbs(
             stack = []
         if item_id in stack:
             cycle = " -> ".join(map(str, stack + [item_id]))
-            raise RuntimeError(f"Cycle detected in parent chain: {cycle}")
+            raise BreadcrumbCycleError(cycle)
 
         stack.append(item_id)
         item = items_by_id[item_id]
@@ -192,7 +196,15 @@ def build_breadcrumbs(
     for item_id in order:
         if item_id not in items_by_id:
             continue
-        breadcrumb_segments = resolve(item_id, [])
+        try:
+            breadcrumb_segments = resolve(item_id, [])
+        except BreadcrumbCycleError as exc:
+            logging.error(
+                "Skipping item %d because a parent cycle was detected: %s",
+                item_id,
+                exc,
+            )
+            continue
         breadcrumb_text = separator.join(breadcrumb_segments)
         item = items_by_id[item_id]
         if item.digi_id is None:
