@@ -63,11 +63,16 @@ def parse_items(xml_path: Path) -> Tuple[Dict[int, Item], List[int]]:
     items: Dict[int, Item] = {}
     order: List[int] = []
 
+    root: Optional[ET.Element] = None
+
     try:
-        context = ET.iterparse(str(xml_path), events=("end",))
-        for _, elem in context:
-            if strip_tag(elem.tag) != "item":
-                elem.clear()
+        context = ET.iterparse(str(xml_path), events=("start", "end"))
+        for event, elem in context:
+            if root is None and event == "start":
+                root = elem
+                continue
+
+            if event != "end" or strip_tag(elem.tag) != "item":
                 continue
 
             item_id = parse_int(find_child_text(elem, "id"))
@@ -100,6 +105,8 @@ def parse_items(xml_path: Path) -> Tuple[Dict[int, Item], List[int]]:
             )
 
             elem.clear()
+            if root is not None:
+                root.clear()
     except ET.ParseError as exc:  # pragma: no cover - propagates to CLI
         raise RuntimeError(f"Failed to parse XML file {xml_path!s}: {exc}") from exc
     finally:
