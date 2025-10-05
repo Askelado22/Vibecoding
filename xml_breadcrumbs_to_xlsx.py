@@ -54,38 +54,50 @@ def parse_items(xml_path: Path) -> Tuple[Dict[int, Item], List[int]]:
     items: Dict[int, Item] = {}
     order: List[int] = []
 
-    context = ET.iterparse(str(xml_path), events=("end",))
+    try:
+        context = ET.iterparse(str(xml_path), events=("end",))
+        for _, elem in context:
+            if strip_tag(elem.tag) != "item":
+                elem.clear()
+                continue
 
-    for _, elem in context:
-        if strip_tag(elem.tag) != "item":
-            continue
+            item_id = parse_int(elem.findtext("id"))
+            if item_id is None:
+                logging.debug("Skipping <item> without valid <id>")
+                elem.clear()
+                continue
 
-        item_id = parse_int(elem.findtext("id"))
-        if item_id is None:
-            logging.debug("Skipping <item> without valid <id>")
+            parent_id = parse_int(elem.findtext("parent_id"))
+            if parent_id == 0:
+                parent_id = None
+            name = (elem.findtext("name") or "").strip()
+            if not name:
+                name = (elem.findtext("title") or "").strip()
+            digi_id = parse_int(elem.findtext("digi_catalog"))
+
+            if item_id in items:
+                logging.warning(
+                    "Duplicate <item> id %d encountered; overriding previous entry",
+                    item_id,
+                )
+            else:
+                order.append(item_id)
+
+            items[item_id] = Item(
+                item_id=item_id,
+                parent_id=parent_id,
+                digi_id=digi_id,
+                name=name,
+            )
+
             elem.clear()
-            continue
-
-        parent_id = parse_int(elem.findtext("parent_id"))
-        if parent_id == 0:
-            parent_id = None
-        name_text = elem.findtext("name") or ""
-        name = name_text.strip()
-        digi_id = parse_int(elem.findtext("digi_catalog"))
-
-        if item_id in items:
-            logging.warning("Duplicate <item> id %d encountered; overriding previous entry", item_id)
-        else:
-            order.append(item_id)
-
-        items[item_id] = Item(
-            item_id=item_id,
-            parent_id=parent_id,
-            digi_id=digi_id,
-            name=name,
-        )
-
-        elem.clear()
+    except ET.ParseError as exc:  # pragma: no cover - propagates to CLI
+        raise RuntimeError(f"Failed to parse XML file {xml_path!s}: {exc}") from exc
+    finally:
+        try:
+            del context
+        except UnboundLocalError:
+            pass
 
     return items, order
 
@@ -143,6 +155,9 @@ def build_breadcrumbs(
         breadcrumb_segments = resolve(item_id, [])
         breadcrumb_text = separator.join(breadcrumb_segments)
         item = items[item_id]
+        if item.digi_id is None:
+            logging.debug("Skipping item %d because digi_id is missing", item_id)
+            continue
         yield breadcrumb_text, item.digi_id, item.item_id
 
 
@@ -189,8 +204,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--separator",
-        default=" / ",
-        help="Separator string used between breadcrumb segments (default: ' / ')",
+        default=" > ",
+        help="Separator string used between breadcrumb segments (default: ' > ')",
     )
     parser.add_argument(
         "--empty-name-placeholder",
